@@ -27,11 +27,13 @@ base de datos.
 2. **Valida** que cada archivo tenga exactamente las columnas esperadas. Si no coinciden, lo rechaza
    en lugar de leer datos en la columna equivocada.
 3. **Extrae** los 1.185.373 registros de `casos_diarios.csv` y los carga en una **lista enlazada
-   propia**.
+   propia**. También lee `condados.csv` y `vecindad.tsv` y los carga en sus propias listas, sin
+   procesarlos todavía.
 4. **Muestra un resumen de la carga** al terminar la extracción: cuántas filas se leyeron, cuántas
-   se cargaron, cuántas se descartaron por formato y cuántos **posibles errores** trae la base (sin
-   código FIPS, condado `Unknown`, muertes vacías). En esta entrega los errores solo se **detectan y
-   cuentan**; separarlos y registrarlos con su motivo corresponde al Transform (Hito 2).
+   se cargaron y cuántas se descartaron por formato en cada archivo, y cuántos **posibles errores**
+   trae la base (ver la tabla de la sección *Base de datos*). En esta entrega los errores solo se
+   **detectan y cuentan**; separarlos, corregirlos y registrarlos con su motivo corresponde al
+   Transform (Hito 2).
 5. **Permite consultar** los datos: mostrar registros, buscar un condado por código FIPS o por
    nombre, ver estadísticas de la base e incidencias de lectura.
 6. **Mide** cuántas comparaciones cuesta cada búsqueda, y compara la lista enlazada contra una
@@ -54,23 +56,23 @@ SmartETL_DS/
 │   └── Documentacion_SmartETL.pdf       → informe: problema, arquitectura, base de datos y pruebas
 ├── data/
 │   ├── casos_diarios.csv                → NO está en el repo: se descarga con el script (48 MB)
-│   ├── condados.csv                     → catálogo de condados por código FIPS
-│   └── vecindad.csv                     → qué condado colinda con cuál
+│   ├── condados.csv                     → catálogo de condados por código FIPS (original, sin limpiar)
+│   └── vecindad.tsv                     → qué condado colinda con cuál (original, sin limpiar)
 ├── tools/
-│   └── preparar_base.py                 → descarga y prepara los 3 archivos de data/
+│   └── preparar_base.py                 → descarga los 3 archivos de data/ tal como los publica su fuente
 ├── src/
 │   ├── Main.java                        → verificación de archivos y menú de consola
 │   ├── model/
 │   │   ├── Esquema.java                 → columnas fijas de la base y validación de cabecera
 │   │   ├── CasoDiario.java              → una fila de casos_diarios.csv
 │   │   ├── Condado.java                 → una fila de condados.csv
-│   │   └── Vecindad.java                → una fila de vecindad.csv
+│   │   └── Vecindad.java                → una fila de vecindad.tsv
 │   ├── estructuras/
 │   │   ├── Nodo.java                    → nodo con dato y referencia al siguiente
 │   │   ├── ListaEnlazada.java           → estructura principal de esta entrega
 │   │   └── ListaSecuencial.java         → para comparar contra la lista enlazada
 │   ├── etl/
-│   │   └── Extract.java                 → lectura de los 3 archivos CSV
+│   │   └── Extract.java                 → lectura de los 3 archivos de la base
 │   └── algoritmos/
 │       └── Busqueda.java                → búsqueda secuencial con conteo de comparaciones
 ├── test/
@@ -90,21 +92,41 @@ que también pide el enunciado para el 1 de octubre, se presenta como diagrama e
 La base es **fija**: el sistema trabaja contra estas columnas exactas y rechaza cualquier archivo
 con otro formato.
 
-| Archivo | Columnas | Filas | En el repo | Fuente | Descarga directa |
-| --- | --- | --- | --- | --- | --- |
-| `casos_diarios.csv` | `date,county,state,fips,cases,deaths` | 1.185.373 | ❌ | [The New York Times — covid-19-data](https://github.com/nytimes/covid-19-data) | [us-counties-2021.csv](https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties-2021.csv) |
-| `condados.csv` | `fips,nombre,estado` | 3.143 | ✅ | [kjhealy/fips-codes](https://github.com/kjhealy/fips-codes) | [state_and_county_fips_master.csv](https://raw.githubusercontent.com/kjhealy/fips-codes/master/state_and_county_fips_master.csv) |
-| `vecindad.csv` | `fips_origen,fips_destino` | 9.483 | ✅ | [turibe/us-county-adjacency](https://github.com/turibe/us-county-adjacency) | [county_adjacency.tsv](https://raw.githubusercontent.com/turibe/us-county-adjacency/main/county_adjacency.tsv) |
+| Archivo | Formato | Columnas originales | Filas | En el repo | Fuente | Descarga directa |
+| --- | --- | --- | --- | --- | --- | --- |
+| `casos_diarios.csv` | comas | `date,county,state,fips,cases,deaths` | 1.185.373 | ❌ | [The New York Times — covid-19-data](https://github.com/nytimes/covid-19-data) | [us-counties-2021.csv](https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties-2021.csv) |
+| `condados.csv` | comas | `fips,name,state` | 3.195 | ✅ | [kjhealy/fips-codes](https://github.com/kjhealy/fips-codes) | [state_and_county_fips_master.csv](https://raw.githubusercontent.com/kjhealy/fips-codes/master/state_and_county_fips_master.csv) |
+| `vecindad.tsv` | tabulaciones, con comillas | `county_name`, `county_id`, `adjacent_county_name`, `adjacent_county_id` | 22.200 | ✅ | [turibe/us-county-adjacency](https://github.com/turibe/us-county-adjacency) | [county_adjacency.tsv](https://raw.githubusercontent.com/turibe/us-county-adjacency/main/county_adjacency.tsv) |
 
-`condados.csv` y `vecindad.csv` **no son copias directas** de sus fuentes: el script filtra las
-filas que no son condados, rellena los ceros del código FIPS, pasa la vecindad de tabulaciones a
-comas y elimina bucles y aristas repetidas.
+Los tres archivos se guardan **exactamente como los publica su fuente**, sin limpiar ni corregir
+nada. Los problemas que traen son reales y forman parte del trabajo del proyecto: en esta entrega
+el programa los **detecta y cuenta**; desde el Hito 2, el Transform los separará y corregirá.
+
+### Posibles errores que trae la base
+
+| Archivo | Problema | Cantidad | Qué pide el enunciado |
+| --- | --- | --- | --- |
+| `casos_diarios.csv` | `deaths` vacío | 28.470 | Campos incompletos |
+| `casos_diarios.csv` | Sin código FIPS | 10.803 | Validar identificadores |
+| `casos_diarios.csv` | `county = Unknown` | 9.708 | Validar identificadores |
+| `condados.csv` | Fila del país mezclada con los condados | 1 | Validar identificadores |
+| `condados.csv` | Filas de estados mezcladas con los condados | 51 | Validar identificadores |
+| `condados.csv` | FIPS de 4 dígitos, sin el cero (`1001` en vez de `01001`) | 316 | Normalizar |
+| `vecindad.tsv` | Condado vecino de sí mismo | 3.234 | Relaciones inconsistentes |
+| `vecindad.tsv` | Vecindad repetida en los dos sentidos | 9.483 | Detectar duplicados |
+
+En `vecindad.tsv` las cuentas cuadran exactas: 3.234 bucles + 9.483 vecindades + 9.483 repetidas =
+22.200 filas. Además, los nombres no coinciden entre archivos (`Autauga County` y `AL` en
+`condados.csv`; `Autauga` y `Alabama` en `casos_diarios.csv`), por eso los archivos se relacionan
+por el código FIPS.
 
 **Importante sobre los datos:**
 
 - `cases` y `deaths` son **acumulados**, no casos nuevos del día.
 - El código `fips` se maneja siempre como **texto**: `01001` como número se vuelve `1001` y deja de
   coincidir con los otros archivos.
+- En `vecindad.tsv` los nombres llevan una coma adentro (`"Autauga County, AL"`): se separa por
+  **tabulación** y se respetan las comillas.
 - **No abrir `casos_diarios.csv` con Excel**: Excel admite 1.048.576 filas y el archivo tiene
   1.185.373. Corta las últimas filas sin avisar.
 
@@ -119,14 +141,14 @@ python3 tools/preparar_base.py     # Linux / Mac
 ```
 
 El script se puede ejecutar desde cualquier carpeta o desde VS Code: **siempre guarda los archivos
-en `data/` de la raíz del repositorio**. Si se ejecuta de nuevo, reemplaza los archivos por otros
+en `data/` de la raíz del repositorio**, sin modificar su contenido. Si se ejecuta de nuevo, reemplaza los archivos por otros
 idénticos (no duplica datos). Si se corta internet a mitad de la descarga, los archivos existentes
 no se modifican. Al terminar muestra:
 
 ```
-    OK  casos_diarios.csv     1,185,372 filas
-    OK  condados.csv              3,143 filas
-    OK  vecindad.csv              9,483 filas
+    OK  casos_diarios.csv     1,185,373 filas
+    OK  condados.csv              3,195 filas
+    OK  vecindad.tsv             22,200 filas
 ```
 
 Sin Python, se puede descargar `casos_diarios.csv` desde el enlace directo de la tabla anterior y
@@ -160,9 +182,9 @@ ejecutar aparece `ClassNotFoundException`, usar `Ctrl+Shift+P` → **Java: Force
 | --- | --- | --- | --- |
 | Cunalata Mendoza Damian Alexander | Líder técnico e integración | Este README, `tools/preparar_base.py`, carpeta `data/` (los 3 archivos de la base), `Busqueda` (búsqueda secuencial con conteo de comparaciones), `compilar.bat` / `compilar.sh`; integración de todas las ramas en `main` y prueba final con la base completa | `Damian_Cunalata` |
 | Chalco Tasna Kenneth Mateo | Desarrollo | `Nodo`, `ListaEnlazada` (insertar al final, insertar al inicio, obtener, eliminar, mostrar e iterador propio) y `ListaSecuencial` | `Mateo-Chalco` |
-| Tisalema Guashco Darwin Joel | Desarrollo | `Main` (verificación de archivos, menú de consola y resumen de la carga) y `PruebaListaEnlazada` | `Rama-Joel` |
+| Tisalema Guashco Darwin Joel | Desarrollo | `Extract` (lectura de los 3 archivos: CSV y TSV con comillas, validación de cabecera, conteo de incidencias y de los posibles errores de la base) | `Rama-Joel` |
 | Silva Camuendo Luis Alexander | Desarrollo | Paquete `model/`: `Esquema`, `CasoDiario`, `Condado` y `Vecindad` | `Rama-Luis-Silva` |
-| Tacuri Santillan Mónica Sara | Desarrollo | `Extract` (lectura de los 3 CSV, validación de cabecera, conteo de incidencias y de posibles errores) | `Sara-Tacuri` |
+| Tacuri Santillan Mónica Sara | Desarrollo | `Main` (verificación de archivos, menú de consola y resumen de la carga) y `PruebaListaEnlazada` | `Sara-Tacuri` |
 | Camacho Monta Josue Jampier | Documentación | `Documentacion_SmartETL`, diagrama de clases, arquitectura propuesta y capturas de ejecución | `rama---Josue` |
 
 Cada integrante desarrolla sus clases en su propia rama y las integra a `main` mediante Pull Request
@@ -205,7 +227,7 @@ menú): la secuencial gana en acceso por posición, la enlazada en inserción si
  4. Buscar por nombre de condado
  5. Ver incidencias de lectura
  6. Estadísticas de la base
- 7. Cargar catálogo de condados y vecindad
+ 7. Ver condados y vecindad
  8. Comparar ListaEnlazada vs ListaSecuencial
  9. Ver esquema fijo de la base
  0. Salir
@@ -227,19 +249,20 @@ Con la base completa, el programa debe mostrar aproximadamente:
 | Registros sin FIPS | 10.803 |
 | `county = Unknown` | 9.708 |
 | `deaths` vacío | 28.470 |
+| Filas de `condados.csv` / que no son condados | 3.195 / 52 |
+| Filas de `vecindad.tsv` / bucles / repetidas | 22.200 / 3.234 / 9.483 |
 | Tiempo de carga | ≈1,5 s |
 | Memoria de la lista | ≈304 MB |
 | Búsqueda de FIPS `48201` en `2021-12-31` | 1.184.850 comparaciones |
 
-Los tres valores de posibles errores (sin FIPS, `Unknown`, `deaths` vacío) son los que muestra el
-**resumen de la carga**. Estos errores **vienen en los datos públicos originales**: no fueron agregados por el equipo. Su
+Los posibles errores son los que muestra el **resumen de la carga**. Estos errores **vienen en los datos públicos originales**: no fueron agregados por el equipo. Su
 detalle está en `Documento/Documentacion_SmartETL.pdf`.
 
 ## Restricciones respetadas
 
 Sin `ArrayList`, `LinkedList`, `Stack`, `Queue`, `Deque`, `HashMap` ni colecciones de `java.util`
 para guardar datos (de ese paquete solo se usa `Scanner` para leer el teclado). La lectura de
-archivos usa `BufferedReader`. Listas implementadas manualmente con arreglos y referencias entre
+archivos usa `BufferedReader`, y la separación de columnas respeta las comillas. Listas implementadas manualmente con arreglos y referencias entre
 objetos. Clases separadas en archivos `.java` y organizadas en paquetes por responsabilidad, con
 `Main` conteniendo `main`.
 
