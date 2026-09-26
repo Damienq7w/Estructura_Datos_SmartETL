@@ -22,3 +22,9 @@
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 replay_pid*
+
+# Base de datos grande: 48 MB, se obtiene con tools/preparar_base.py
+data/casos_diarios.csv
+
+# Clases compiladas: se regeneran al compilar
+bin/
