@@ -27,7 +27,8 @@ base de datos.
 2. **Valida** que cada archivo tenga exactamente las columnas esperadas. Si no coinciden, lo rechaza
    en lugar de leer datos en la columna equivocada.
 3. **Extrae** los 1.185.373 registros de `casos_diarios.csv` y los carga en una **lista enlazada
-   propia**. También lee `condados.csv` y `vecindad.tsv` y los carga en sus propias listas, sin
+   propia** (`ListaEnlazada<Registro>`, el flujo `CSV → EXTRACT → LISTA<Registro>` que pide el
+   enunciado). También lee `condados.csv` y `vecindad.tsv` y los carga en sus propias listas, sin
    procesarlos todavía.
 4. **Muestra un resumen de la carga** al terminar la extracción: cuántas filas se leyeron, cuántas
    se cargaron y cuántas se descartaron por formato en cada archivo, y cuántos **posibles errores**
@@ -63,6 +64,7 @@ SmartETL_DS/
 ├── src/
 │   ├── Main.java                        → verificación de archivos y menú de consola
 │   ├── model/
+│   │   ├── Registro.java                → interfaz común: CasoDiario, Condado y Vecindad son Registro
 │   │   ├── Esquema.java                 → columnas fijas de la base y validación de cabecera
 │   │   ├── CasoDiario.java              → una fila de casos_diarios.csv
 │   │   ├── Condado.java                 → una fila de condados.csv
@@ -83,7 +85,7 @@ SmartETL_DS/
 └── README.md
 ```
 
-Son **11 clases**, solo las que usa esta entrega. La arquitectura propuesta del proyecto completo,
+Son **12 clases**, solo las que usa esta entrega. La arquitectura propuesta del proyecto completo,
 que también pide el enunciado para el 1 de octubre, se presenta como diagrama en
 `Diagrama de clases/Arquitectura.png`.
 
@@ -183,7 +185,7 @@ ejecutar aparece `ClassNotFoundException`, usar `Ctrl+Shift+P` → **Java: Force
 | Cunalata Mendoza Damian Alexander | Líder técnico e integración | Este README, `tools/preparar_base.py`, carpeta `data/` (los 3 archivos de la base), `Busqueda` (búsqueda secuencial con conteo de comparaciones), `compilar.bat` / `compilar.sh`; integración de todas las ramas en `main` y prueba final con la base completa | `Damian_Cunalata` |
 | Chalco Tasna Kenneth Mateo | Desarrollo | `Nodo`, `ListaEnlazada` (insertar al final, insertar al inicio, obtener, eliminar, mostrar e iterador propio) y `ListaSecuencial` | `Mateo-Chalco` |
 | Tisalema Guashco Darwin Joel | Desarrollo | `Extract` (lectura de los 3 archivos: CSV y TSV con comillas, validación de cabecera, conteo de incidencias y de los posibles errores de la base) | `Rama-Joel` |
-| Silva Camuendo Luis Alexander | Desarrollo | Paquete `model/`: `Esquema`, `CasoDiario`, `Condado` y `Vecindad` | `Rama-Luis-Silva` |
+| Silva Camuendo Luis Alexander | Desarrollo | Paquete `model/`: `Registro` (interfaz común), `Esquema`, `CasoDiario`, `Condado` y `Vecindad` | `Rama-Luis-Silva` |
 | Tacuri Santillan Mónica Sara | Desarrollo | `Main` (verificación de archivos, menú de consola y resumen de la carga) y `PruebaListaEnlazada` | `Sara-Tacuri` |
 | Camacho Monta Josue Jampier | Documentación | `Documentacion_SmartETL`, diagrama de clases, arquitectura propuesta y capturas de ejecución | `rama---Josue` |
 
@@ -218,6 +220,14 @@ tamaño y copia todos los elementos. `obtener` accede directamente a la posició
 implementó para medir en la misma ejecución la diferencia con la lista enlazada (opción 8 del
 menú): la secuencial gana en acceso por posición, la enlazada en inserción sin copias.
 
+### Modelo de datos (`Registro`)
+
+`CasoDiario`, `Condado` y `Vecindad` son tres tipos de datos distintos, pero los tres implementan la
+interfaz `Registro`, que define lo que todo registro sabe hacer (dar su clave y mostrarse). Gracias a
+eso las tres clases se pueden guardar en una `ListaEnlazada<Registro>` y el programa las trata de la
+misma forma: es la aplicación de **polimorfismo** y **genéricos** que piden los objetivos del
+enunciado.
+
 ## Menú de consola
 
 ```
@@ -244,15 +254,15 @@ Con la base completa, el programa debe mostrar aproximadamente:
 | Filas leídas | 1.185.373 |
 | Registros cargados en la lista | 1.185.373 |
 | Filas descartadas por formato | 0 |
-| Condados distintos | 3.262 |
 | Fechas | 365 (2021-01-01 → 2021-12-31) |
+| Registros del último día | 3.251 |
 | Registros sin FIPS | 10.803 |
 | `county = Unknown` | 9.708 |
 | `deaths` vacío | 28.470 |
-| Filas de `condados.csv` / que no son condados | 3.195 / 52 |
+| Filas de `condados.csv` / que no son condados / FIPS sin cero | 3.195 / 52 / 316 |
 | Filas de `vecindad.tsv` / bucles / repetidas | 22.200 / 3.234 / 9.483 |
-| Tiempo de carga | ≈1,5 s |
-| Memoria de la lista | ≈304 MB |
+| Tiempo de carga | ≈1,5–2 s |
+| Memoria usada por el programa | ≈300–310 MB |
 | Búsqueda de FIPS `48201` en `2021-12-31` | 1.184.850 comparaciones |
 
 Los posibles errores son los que muestra el **resumen de la carga**. Estos errores **vienen en los datos públicos originales**: no fueron agregados por el equipo. Su

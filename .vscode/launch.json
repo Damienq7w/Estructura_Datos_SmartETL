@@ -3,6 +3,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "PruebaListaEnlazada",
+            "request": "launch",
+            "mainClass": "PruebaListaEnlazada",
+            "projectName": "Estructura_Datos_SmartETL_8e753871"
+        },
+        {
+            "type": "java",
             "name": "SmartETL-DS (Main)",
             "request": "launch",
             "mainClass": "Main",

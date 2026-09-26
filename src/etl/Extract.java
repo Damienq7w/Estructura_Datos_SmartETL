@@ -1,14 +1,13 @@
 package etl;
 
 import estructuras.ListaEnlazada;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import model.CasoDiario;
 import model.Condado;
 import model.Esquema;
 import model.Vecindad;
-
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
 
 public class Extract {
 
@@ -105,11 +104,14 @@ public class Extract {
                 String nombre = limpiar(campos[Esquema.CONDADOS_COL_NOMBRE]);
                 String estado = limpiar(campos[Esquema.CONDADOS_COL_ESTADO]);
 
-                if (fips.isEmpty() || fips.length() <= 2) {
+                // fila de pais o de estado: fips 0 o terminado en 000, y estado "NA"
+                boolean esPaisOEstado = fips.isEmpty() || fips.equals("0")
+                        || fips.endsWith("000") || estado.equalsIgnoreCase("NA");
+
+                if (esPaisOEstado) {
                     condadosNoSonCondado++;
-                    incidencias.insertar("condados linea " + numeroLinea + ": no parece ser un condado (fips=" + fips + ")");
-                }
-                if (fips.length() == 4) {
+                    incidencias.insertar("condados linea " + numeroLinea + ": no es condado, es pais o estado (fips=" + fips + ")");
+                } else if (fips.length() == 4) {
                     condadosFipsSinCero++;
                     incidencias.insertar("condados linea " + numeroLinea + ": fips de 4 digitos, sin cero (" + fips + ")");
                 }

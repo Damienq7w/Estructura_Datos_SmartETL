@@ -1,16 +1,16 @@
+import algoritmos.Busqueda;
+import estructuras.ListaEnlazada;
+import estructuras.ListaSecuencial;
+import etl.Extract;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Scanner;
-
-import estructuras.ListaEnlazada;
-import estructuras.ListaSecuencial;
 import model.CasoDiario;
 import model.Condado;
-import model.Vecindad;
 import model.Esquema;
-import etl.Extract;
-import algoritmos.Busqueda;
+import model.Registro;
+import model.Vecindad;
 
 public class Main {
 
@@ -152,7 +152,37 @@ public class Main {
         if (sinCargar()) {
             return;
         }
-        casos.mostrar(10);
+        System.out.println("Total de registros: " + casos.tamanio());
+        System.out.println("El archivo viene ordenado por fecha y luego por condado.");
+        System.out.println();
+        System.out.println("--- Primeros 5 registros ---");
+        mostrarPrimeros(casos, 5);
+        System.out.println("--- Ultimos 5 registros ---");
+        mostrarUltimos(casos, 5);
+    }
+
+    // polimorfismo: sirve para CasoDiario, Condado y Vecindad porque todos son Registro
+    private static void mostrarPrimeros(ListaEnlazada<? extends Registro> lista, int n) {
+        int contador = 0;
+        for (Registro r : lista) {
+            if (contador >= n) {
+                break;
+            }
+            System.out.println(r.mostrar());
+            contador++;
+        }
+    }
+
+    // recorre una sola vez con el iterador y solo imprime desde la posicion tamanio - n
+    private static void mostrarUltimos(ListaEnlazada<? extends Registro> lista, int n) {
+        int desde = lista.tamanio() - n;
+        int posicion = 0;
+        for (Registro r : lista) {
+            if (posicion >= desde) {
+                System.out.println(r.mostrar());
+            }
+            posicion++;
+        }
     }
 
     private static void buscarPorFipsYFecha(Scanner teclado) {
@@ -186,7 +216,7 @@ public class Main {
         ListaEnlazada<CasoDiario> encontrados = busqueda.porCondado(casos, nombre);
 
         System.out.println("Encontrados: " + encontrados.tamanio());
-        encontrados.mostrar(10);
+        mostrarPrimeros(encontrados, 10);
         System.out.println("Comparaciones realizadas: " + busqueda.getComparaciones());
     }
 
@@ -202,7 +232,35 @@ public class Main {
         if (sinCargar()) {
             return;
         }
-        System.out.println("Total de registros cargados: " + casos.tamanio());
+        String primeraFecha = null;
+        String ultimaFecha = null;
+        int fechasDistintas = 0;
+        int registrosUltimoDia = 0;
+
+        // como el archivo viene ordenado por fecha, cada cambio de fecha es un dia nuevo
+        for (CasoDiario caso : casos) {
+            if (!caso.getFecha().equals(ultimaFecha)) {
+                fechasDistintas++;
+                ultimaFecha = caso.getFecha();
+                registrosUltimoDia = 0;
+                if (primeraFecha == null) {
+                    primeraFecha = caso.getFecha();
+                }
+            }
+            registrosUltimoDia++;
+        }
+
+        Runtime rt = Runtime.getRuntime();
+        rt.gc();
+        long memoriaMb = (rt.totalMemory() - rt.freeMemory()) / (1024 * 1024);
+
+        System.out.println("Registros cargados: " + casos.tamanio());
+        System.out.println("Fechas distintas: " + fechasDistintas + " (" + primeraFecha + " -> " + ultimaFecha + ")");
+        System.out.println("Registros del ultimo dia: " + registrosUltimoDia);
+        System.out.println("Sin FIPS: " + extract.getCasosSinFips());
+        System.out.println("Condado Unknown: " + extract.getCasosCondadoUnknown());
+        System.out.println("Muertes vacias: " + extract.getCasosMuertesVacias());
+        System.out.println("Memoria usada por el programa: " + memoriaMb + " MB");
     }
 
     private static void verCondadosYVecindad() {
@@ -227,9 +285,9 @@ public class Main {
 
         System.out.println();
         System.out.println("Condados:");
-        condados.mostrar(10);
+        mostrarPrimeros(condados, 10);
         System.out.println("Vecindad:");
-        vecindad.mostrar(10);
+        mostrarPrimeros(vecindad, 10);
     }
 
     private static void compararListas() {
@@ -237,19 +295,28 @@ public class Main {
             return;
         }
 
-        ListaSecuencial<CasoDiario> secuencial = new ListaSecuencial<>();
+        // se copian los mismos registros a las dos estructuras y se mide cada una
         long inicio = System.currentTimeMillis();
+        ListaEnlazada<CasoDiario> enlazada = new ListaEnlazada<>();
+        for (CasoDiario caso : casos) {
+            enlazada.insertar(caso);
+        }
+        long tiempoEnlazada = System.currentTimeMillis() - inicio;
+
+        inicio = System.currentTimeMillis();
+        ListaSecuencial<CasoDiario> secuencial = new ListaSecuencial<>();
         for (CasoDiario caso : casos) {
             secuencial.insertar(caso);
         }
-        long tiempoMs = System.currentTimeMillis() - inicio;
+        long tiempoSecuencial = System.currentTimeMillis() - inicio;
 
-        System.out.println("ListaEnlazada -> registros: " + casos.tamanio());
-        System.out.println("ListaSecuencial -> registros: " + secuencial.tamanio() + " (capacidad: "
+        System.out.println("Registros insertados en cada lista: " + casos.tamanio());
+        System.out.println("ListaEnlazada   -> " + tiempoEnlazada + " ms (un nodo nuevo por registro)");
+        System.out.println("ListaSecuencial -> " + tiempoSecuencial + " ms (capacidad final: "
                 + secuencial.capacidad() + ")");
-        System.out.println("Tiempo de copiar a ListaSecuencial: " + tiempoMs + " ms");
-        System.out.println("La ListaEnlazada no necesita conocer el tamano de antemano;");
-        System.out.println("la ListaSecuencial accede por posicion en O(1) pero copia el arreglo al llenarse.");
+        System.out.println("La ListaEnlazada inserta al final en O(1) gracias a la referencia a la cola.");
+        System.out.println("La ListaSecuencial accede por posicion en O(1), pero al llenarse duplica");
+        System.out.println("el arreglo y copia todo; ademas deja espacio sin usar.");
     }
 
     private static void mostrarEsquema() {
