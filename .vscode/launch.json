@@ -1,1 +1,13 @@
-{}
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "SmartETL-DS (Main)",
+            "request": "launch",
+            "mainClass": "Main",
+            "cwd": "${workspaceFolder}",
+            "vmArgs": "-Xmx1g -Dfile.encoding=UTF-8"
+        }
+    ]
+}
