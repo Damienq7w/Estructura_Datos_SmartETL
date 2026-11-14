@@ -105,6 +105,54 @@ public class ArbolBST<T extends Comparable<T>> {
         return total;
     }
 
+    // izquierda, nodo, derecha: en un arbol de busqueda sale ordenado de menor a mayor
+    public ListaEnlazada<T> inOrden() {
+        ListaEnlazada<T> resultado = new ListaEnlazada<>();
+        inOrden(raiz, resultado);
+        return resultado;
+    }
+
+    private void inOrden(NodoArbol<T> nodo, ListaEnlazada<T> resultado) {
+        if (nodo == null) {
+            return;
+        }
+        inOrden(nodo.getIzquierdo(), resultado);
+        resultado.insertar(nodo.getDato());
+        inOrden(nodo.getDerecho(), resultado);
+    }
+
+    // nodo, izquierda, derecha: la raiz sale primero
+    public ListaEnlazada<T> preOrden() {
+        ListaEnlazada<T> resultado = new ListaEnlazada<>();
+        preOrden(raiz, resultado);
+        return resultado;
+    }
+
+    private void preOrden(NodoArbol<T> nodo, ListaEnlazada<T> resultado) {
+        if (nodo == null) {
+            return;
+        }
+        resultado.insertar(nodo.getDato());
+        preOrden(nodo.getIzquierdo(), resultado);
+        preOrden(nodo.getDerecho(), resultado);
+    }
+
+    // izquierda, derecha, nodo: la raiz sale al final
+    public ListaEnlazada<T> postOrden() {
+        ListaEnlazada<T> resultado = new ListaEnlazada<>();
+        postOrden(raiz, resultado);
+        return resultado;
+    }
+
+    private void postOrden(NodoArbol<T> nodo, ListaEnlazada<T> resultado) {
+        if (nodo == null) {
+            return;
+        }
+        postOrden(nodo.getIzquierdo(), resultado);
+        postOrden(nodo.getDerecho(), resultado);
+        resultado.insertar(nodo.getDato());
+    }
+
     // contador interno: se actualiza al insertar, no recorre nada
     public int tamanio() { return cantidad; }
 

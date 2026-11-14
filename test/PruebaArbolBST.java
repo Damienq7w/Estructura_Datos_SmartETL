@@ -1,4 +1,5 @@
 import estructuras.ArbolBST;
+import estructuras.ListaEnlazada;
 
 public class PruebaArbolBST {
 
@@ -17,6 +18,12 @@ public class PruebaArbolBST {
         probarInsertarOrdenado();
         probarClavesDeTexto();
         probarInsertarNulo();
+        probarRecorridosVacio();
+        probarInOrden();
+        probarPreOrden();
+        probarPostOrden();
+        probarInOrdenSiempreOrdenado();
+        probarRecorridosArbolDegenerado();
 
         System.out.println();
         System.out.println("Pruebas OK: " + pruebasOk);
@@ -148,6 +155,91 @@ public class PruebaArbolBST {
                 arbol.contarNodos() == 3 && "01001".equals(arbol.buscar("01001"))
                         && arbol.buscar("1001") == null,
                 "01001 deberia encontrarse y 1001 no: son textos distintos");
+    }
+
+    // compara una lista con los valores esperados, en el mismo orden
+    private static boolean coincide(ListaEnlazada<Integer> lista, int[] esperado) {
+        if (lista.tamanio() != esperado.length) {
+            return false;
+        }
+        int posicion = 0;
+        for (int valor : lista) {
+            if (valor != esperado[posicion]) {
+                return false;
+            }
+            posicion++;
+        }
+        return true;
+    }
+
+    private static String texto(ListaEnlazada<Integer> lista) {
+        StringBuilder sb = new StringBuilder();
+        for (int valor : lista) {
+            sb.append(valor).append(' ');
+        }
+        return sb.toString().trim();
+    }
+
+    private static void probarRecorridosVacio() {
+        ArbolBST<Integer> arbol = new ArbolBST<>();
+        reportar("Recorridos de arbol vacio",
+                arbol.inOrden().estaVacia() && arbol.preOrden().estaVacia() && arbol.postOrden().estaVacia(),
+                "los tres recorridos de un arbol vacio deberian devolver una lista vacia");
+    }
+
+    private static void probarInOrden() {
+        ListaEnlazada<Integer> recorrido = arbolDeEjemplo().inOrden();
+        reportar("InOrden", coincide(recorrido, new int[] { 20, 30, 40, 50, 60, 70, 80 }),
+                "se esperaba 20 30 40 50 60 70 80 y salio " + texto(recorrido));
+    }
+
+    private static void probarPreOrden() {
+        ListaEnlazada<Integer> recorrido = arbolDeEjemplo().preOrden();
+        reportar("PreOrden", coincide(recorrido, new int[] { 50, 30, 20, 40, 70, 60, 80 }),
+                "se esperaba 50 30 20 40 70 60 80 y salio " + texto(recorrido));
+    }
+
+    private static void probarPostOrden() {
+        ListaEnlazada<Integer> recorrido = arbolDeEjemplo().postOrden();
+        reportar("PostOrden", coincide(recorrido, new int[] { 20, 40, 30, 60, 80, 70, 50 }),
+                "se esperaba 20 40 30 60 80 70 50 y salio " + texto(recorrido));
+    }
+
+    // propiedad del arbol de busqueda: sin importar el orden de insercion,
+    // el inOrden sale de menor a mayor
+    private static void probarInOrdenSiempreOrdenado() {
+        ArbolBST<Integer> arbol = new ArbolBST<>();
+        int valor = 7;
+        for (int i = 0; i < 2000; i++) {
+            valor = (valor * 31 + 17) % 10007;
+            arbol.insertar(valor);
+        }
+
+        ListaEnlazada<Integer> recorrido = arbol.inOrden();
+        boolean ordenado = true;
+        Integer anterior = null;
+        for (int actual : recorrido) {
+            if (anterior != null && anterior >= actual) {
+                ordenado = false;
+            }
+            anterior = actual;
+        }
+        reportar("InOrden siempre ordenado", ordenado && recorrido.tamanio() == arbol.contarNodos(),
+                "el inOrden deberia salir de menor a mayor y con tantos elementos como nodos");
+    }
+
+    // el catalogo real tiene unos 3.200 condados y llega ordenado:
+    // los recorridos deben aguantar un arbol de esa profundidad
+    private static void probarRecorridosArbolDegenerado() {
+        ArbolBST<Integer> arbol = new ArbolBST<>();
+        int total = 3300;
+        for (int i = 1; i <= total; i++) {
+            arbol.insertar(i);
+        }
+        reportar("Recorridos en arbol degenerado",
+                arbol.inOrden().tamanio() == total && arbol.preOrden().tamanio() == total
+                        && arbol.postOrden().tamanio() == total,
+                "los tres recorridos deberian devolver los " + total + " elementos");
     }
 
     private static void probarInsertarNulo() {
