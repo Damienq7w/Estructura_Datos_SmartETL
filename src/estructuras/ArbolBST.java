@@ -153,6 +153,44 @@ public class ArbolBST<T extends Comparable<T>> {
         resultado.insertar(nodo.getDato());
     }
 
+    // cantidad de niveles: arbol vacio = 0, un solo nodo = 1
+    public int altura() {
+        return altura(raiz);
+    }
+
+    private int altura(NodoArbol<T> nodo) {
+        if (nodo == null) {
+            return 0;
+        }
+        int izquierda = altura(nodo.getIzquierdo());
+        int derecha = altura(nodo.getDerecho());
+        return 1 + Math.max(izquierda, derecha);
+    }
+
+    // reconstruye el arbol a partir de una lista YA ORDENADA de menor a mayor.
+    // inserta primero el elemento del medio y repite con cada mitad, asi el
+    // arbol queda balanceado en lugar de quedar como una lista
+    public void construirPorMedios(ListaSecuencial<T> ordenados) {
+        vaciar();
+        insertarMedios(ordenados, 0, ordenados.tamanio() - 1);
+    }
+
+    private void insertarMedios(ListaSecuencial<T> ordenados, int desde, int hasta) {
+        if (desde > hasta) {
+            return;
+        }
+        int medio = desde + (hasta - desde) / 2;
+        insertar(ordenados.obtener(medio));
+        insertarMedios(ordenados, desde, medio - 1);
+        insertarMedios(ordenados, medio + 1, hasta);
+    }
+
+    public void vaciar() {
+        raiz = null;
+        cantidad = 0;
+        comparaciones = 0;
+    }
+
     // contador interno: se actualiza al insertar, no recorre nada
     public int tamanio() { return cantidad; }
 

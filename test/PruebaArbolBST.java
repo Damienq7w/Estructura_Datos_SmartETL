@@ -1,5 +1,6 @@
 import estructuras.ArbolBST;
 import estructuras.ListaEnlazada;
+import estructuras.ListaSecuencial;
 
 public class PruebaArbolBST {
 
@@ -24,6 +25,12 @@ public class PruebaArbolBST {
         probarPostOrden();
         probarInOrdenSiempreOrdenado();
         probarRecorridosArbolDegenerado();
+        probarAlturaBasica();
+        probarAlturaDegenerada();
+        probarConstruirPorMedios();
+        probarPorMediosConservaDatos();
+        probarPorMediosCasosLimite();
+        probarExperimentoCatalogo();
 
         System.out.println();
         System.out.println("Pruebas OK: " + pruebasOk);
@@ -240,6 +247,95 @@ public class PruebaArbolBST {
                 arbol.inOrden().tamanio() == total && arbol.preOrden().tamanio() == total
                         && arbol.postOrden().tamanio() == total,
                 "los tres recorridos deberian devolver los " + total + " elementos");
+    }
+
+    private static ListaSecuencial<Integer> numerosOrdenados(int total) {
+        ListaSecuencial<Integer> lista = new ListaSecuencial<>();
+        for (int i = 1; i <= total; i++) {
+            lista.insertar(i);
+        }
+        return lista;
+    }
+
+    private static void probarAlturaBasica() {
+        ArbolBST<Integer> vacio = new ArbolBST<>();
+        ArbolBST<Integer> unNodo = new ArbolBST<>();
+        unNodo.insertar(50);
+        ArbolBST<Integer> ejemplo = arbolDeEjemplo();
+        reportar("Altura basica", vacio.altura() == 0 && unNodo.altura() == 1 && ejemplo.altura() == 3,
+                "se esperaba 0, 1 y 3; salio " + vacio.altura() + ", " + unNodo.altura() + " y "
+                        + ejemplo.altura());
+    }
+
+    // insertar en orden: cada clave cuelga a la derecha de la anterior
+    private static void probarAlturaDegenerada() {
+        ArbolBST<Integer> arbol = new ArbolBST<>();
+        for (int i = 1; i <= 1000; i++) {
+            arbol.insertar(i);
+        }
+        reportar("Altura de arbol degenerado", arbol.altura() == 1000,
+                "1000 claves insertadas en orden deberian dar altura 1000; salio " + arbol.altura());
+    }
+
+    // los mismos 1000 datos, insertados por medios, caben en 10 niveles
+    private static void probarConstruirPorMedios() {
+        ArbolBST<Integer> arbol = new ArbolBST<>();
+        arbol.construirPorMedios(numerosOrdenados(1000));
+        arbol.buscar(1000);
+        reportar("Construir por medios",
+                arbol.contarNodos() == 1000 && arbol.altura() == 10 && arbol.getComparaciones() <= 10,
+                "1000 claves por medios deberian dar altura 10; salio altura " + arbol.altura()
+                        + " y " + arbol.getComparaciones() + " comparaciones");
+    }
+
+    private static void probarPorMediosConservaDatos() {
+        ArbolBST<Integer> arbol = new ArbolBST<>();
+        arbol.insertar(999999);
+        arbol.construirPorMedios(numerosOrdenados(7));
+        reportar("Por medios conserva los datos",
+                coincide(arbol.inOrden(), new int[] { 1, 2, 3, 4, 5, 6, 7 })
+                        && coincide(arbol.preOrden(), new int[] { 4, 2, 1, 3, 6, 5, 7 })
+                        && arbol.buscar(999999) == null,
+                "el arbol deberia tener solo 1..7 con el 4 en la raiz; inOrden " + texto(arbol.inOrden())
+                        + " / preOrden " + texto(arbol.preOrden()));
+    }
+
+    private static void probarPorMediosCasosLimite() {
+        ArbolBST<Integer> vacio = new ArbolBST<>();
+        vacio.construirPorMedios(new ListaSecuencial<>());
+
+        ArbolBST<Integer> uno = new ArbolBST<>();
+        uno.construirPorMedios(numerosOrdenados(1));
+
+        reportar("Por medios con lista vacia y de un elemento",
+                vacio.estaVacio() && vacio.altura() == 0 && uno.contarNodos() == 1 && uno.altura() == 1,
+                "lista vacia deberia dar arbol vacio y un elemento deberia dar altura 1");
+    }
+
+    // el experimento del informe, con el tamanio del catalogo real de condados
+    private static void probarExperimentoCatalogo() {
+        int total = 3143;
+
+        ArbolBST<Integer> enOrden = new ArbolBST<>();
+        for (int i = 1; i <= total; i++) {
+            enOrden.insertar(i);
+        }
+        enOrden.buscar(total);
+        int comparacionesEnOrden = enOrden.getComparaciones();
+
+        ArbolBST<Integer> porMedios = new ArbolBST<>();
+        porMedios.construirPorMedios(numerosOrdenados(total));
+        porMedios.buscar(total);
+        int comparacionesPorMedios = porMedios.getComparaciones();
+
+        System.out.println("  " + total + " claves en orden : altura " + enOrden.altura()
+                + ", " + comparacionesEnOrden + " comparaciones para buscar la ultima");
+        System.out.println("  " + total + " claves por medios: altura " + porMedios.altura()
+                + ", " + comparacionesPorMedios + " comparaciones para buscar la ultima");
+
+        reportar("Experimento con el tamanio del catalogo",
+                enOrden.altura() == total && porMedios.altura() == 12 && comparacionesPorMedios <= 12,
+                "en orden deberia dar altura " + total + " y por medios altura 12");
     }
 
     private static void probarInsertarNulo() {
