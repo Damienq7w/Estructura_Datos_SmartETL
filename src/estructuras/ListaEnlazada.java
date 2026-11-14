@@ -72,6 +72,14 @@ public class ListaEnlazada<T> implements Iterable<T> {
     }
 
     public int tamanio() { return tamanio; }
+    
+    /**
+ * Devuelve el ultimo dato en O(1), gracias a la referencia cola.
+ * Si la lista esta vacia, devuelve null.
+ */
+public T ultimo() {
+    return cola == null ? null : cola.getDato();
+}
 
     public boolean estaVacia() { return tamanio == 0; }
 
