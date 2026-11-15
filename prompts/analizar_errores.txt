@@ -1,0 +1,1 @@
+Resume en español los errores de esta ejecución usando únicamente la tabla de conteos por tipo. Identifica las categorías más frecuentes y conserva las cifras.

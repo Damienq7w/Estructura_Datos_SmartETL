@@ -1,0 +1,1 @@
+Explica en español el grafo de esta ejecución usando la cantidad de vértices, aristas y componentes conectados. Describe los vecinos del condado indicado. Conserva las cifras y señala cualquier dato que falte.
