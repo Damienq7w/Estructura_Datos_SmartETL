@@ -1,4 +1,5 @@
 import estructuras.ListaEnlazada;
+import estructuras.OyenteEventos;
 import ia.Bitacora;
 import ia.Evento;
 import ia.Transicion;
@@ -6,21 +7,22 @@ import ia.Transicion;
 public class PruebaBitacora {
     public static void main(String[] args) {
         Bitacora bitacora = new Bitacora(5);
+        OyenteEventos oyente = bitacora;
 
         comprobar(!bitacora.estaActiva() && bitacora.tamanio() == 0,
                 "Bitácora nueva y vacía");
 
         bitacora.activar();
-        bitacora.registrar("ETL", "ENCOLAR", "FIPS 01001, línea 25");
+        oyente.evento("ETL", "ENCOLAR", "FIPS 01001, línea 25");
         comprobar(bitacora.estaActiva() && bitacora.tamanio() == 1,
-                "Registro con la bitácora activa");
+                "Registro mediante el oyente con la bitácora activa");
 
         Evento primero = bitacora.eventos().obtener(0);
         comprobar(primero.getNumero() == 1
                         && "ETL".equals(primero.getProceso())
                         && "ENCOLAR".equals(primero.getAccion())
                         && "FIPS 01001, línea 25".equals(primero.getDetalle()),
-                "Datos del primer evento");
+                "Datos del evento recibido mediante el oyente");
 
         bitacora.registrar("ETL", "DESENCOLAR", "Línea 25");
         bitacora.registrar("ETL", "VALIDAR", "Línea 25");
@@ -30,9 +32,9 @@ public class PruebaBitacora {
                 "Numeración en orden");
 
         bitacora.desactivar();
-        bitacora.registrar("ETL", "REPARAR", "Línea 25");
+        oyente.evento("ETL", "REPARAR", "Línea 25");
         comprobar(!bitacora.estaActiva() && bitacora.tamanio() == 3,
-                "Registro apagado");
+                "El oyente respeta el registro apagado");
 
         Bitacora limitada = new Bitacora(5);
         limitada.activar();
