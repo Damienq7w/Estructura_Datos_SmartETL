@@ -4,6 +4,7 @@ import estructuras.Cola;
 import estructuras.ListaEnlazada;
 import estructuras.Pila;
 import model.CasoDiario;
+import model.Condado;
 import model.ErrorETL;
 import model.RegistroCrudo;
 import model.Esquema;
@@ -26,9 +27,11 @@ public class Transform {
     public static final int SIN_DATO = -1;
 
     private final ListaEnlazada<CasoDiario> casosValidos = new ListaEnlazada<>();
+    private final ListaEnlazada<Condado> condadosValidos = new ListaEnlazada<>();
     private final Pila<ErrorETL> errores = new Pila<>();
 
     private final Conteo conteoCasos = new Conteo();
+    private final Conteo conteoCondados = new Conteo();
 
     // =====================================================================
     // Parte 3: casos diarios
@@ -161,6 +164,62 @@ public class Transform {
     }
 
     // =====================================================================
+    // Parte 4: condados
+    // =====================================================================
+
+    /** Vacia la cola de condados con el mismo recorrido que los casos. */
+    public void transformarCondados(Cola<RegistroCrudo> cola) {
+        while (!cola.estaVacia()) {
+            RegistroCrudo registro = cola.desencolar();
+            conteoCondados.sumarLeido();
+
+            String[] c = registro.getCampos();
+            int linea = registro.getNumeroLinea();
+
+            ErrorETL error = reglaColumnas("condados", linea, c, Esquema.CABECERA_CONDADOS.length);
+            if (error == null) error = reglaEsCondado(linea, c);
+
+            if (error != null) {
+                rechazar(error, conteoCondados);
+            } else {
+                condadosValidos.insertar(crearCondado(c));
+                conteoCondados.sumarValido();
+            }
+        }
+    }
+
+    /**
+     * Regla 2 de condados: la fila es un pais o un estado, no un condado.
+     * Lo es si el FIPS esta vacio, es 0, termina en 000 o el estado es NA.
+     */
+    private ErrorETL reglaEsCondado(int linea, String[] c) {
+        String fips = limpiarTexto(c[Esquema.CONDADOS_COL_FIPS]);
+        String estado = limpiarTexto(c[Esquema.CONDADOS_COL_ESTADO]);
+        boolean noEsCondado = fips.isEmpty()
+                || fips.equals("0")
+                || fips.endsWith("000")
+                || estado.equals("NA")
+                || arreglarFips(fips) == null;   // letras o mas de 5 digitos
+        if (noEsCondado) {
+            return new ErrorETL("condados", linea, TipoError.NO_ES_CONDADO,
+                    "fips = " + fips + ", estado = " + estado);
+        }
+        return null;
+    }
+
+    /** Regla 3 de condados: el FIPS corto se arregla y cuenta como reparado. */
+    private Condado crearCondado(String[] c) {
+        String fipsOriginal = limpiarTexto(c[Esquema.CONDADOS_COL_FIPS]);
+        String fips = arreglarFips(fipsOriginal);
+        if (!fips.equals(fipsOriginal)) {
+            conteoCondados.sumarReparado();
+        }
+        return new Condado(fips,
+                limpiarTexto(c[Esquema.CONDADOS_COL_NOMBRE]),
+                limpiarTexto(c[Esquema.CONDADOS_COL_ESTADO]));
+    }
+
+    // =====================================================================
     // Comun
     // =====================================================================
 
@@ -171,8 +230,10 @@ public class Transform {
     }
 
     public ListaEnlazada<CasoDiario> getCasosValidos() { return casosValidos; }
+    public ListaEnlazada<Condado> getCondadosValidos() { return condadosValidos; }
     public Pila<ErrorETL> getErrores() { return errores; }
     public Conteo getConteoCasos() { return conteoCasos; }
+    public Conteo getConteoCondados() { return conteoCondados; }
 
     // =====================================================================
     // Parte 2: metodos de arreglo (sabado)
