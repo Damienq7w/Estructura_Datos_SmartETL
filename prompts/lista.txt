@@ -1,0 +1,3 @@
+Representa las inserciones, comparaciones y enlaces observados en esta ejecución de la lista enlazada.
+
+Genera un flujograma en español dentro de un bloque Mermaid que empiece con flowchart TD. Usa únicamente las acciones, conexiones y conteos de la tabla de transiciones adjunta. Conserva las repeticiones y usa un rombo para las acciones con más de una salida. Si la tabla está vacía, indica que faltan transiciones para dibujar el flujo.
