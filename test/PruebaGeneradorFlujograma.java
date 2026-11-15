@@ -2,6 +2,7 @@ import ia.Bitacora;
 import ia.GeneradorFlujograma;
 import java.io.IOException;
 import java.nio.file.Path;
+import estructuras.ListaEnlazada;
 
 public class PruebaGeneradorFlujograma {
     public static void main(String[] args) throws IOException {
@@ -47,7 +48,20 @@ public class PruebaGeneradorFlujograma {
                 mermaid,
                 "La prueba registra nueve eventos de ejemplo. VALIDAR tiene dos "
                         + "salidas: agregar el registro a la lista o apilar el error.");
+                ListaEnlazada<String> vecinosEjemplo = new ListaEnlazada<>();
+        vecinosEjemplo.insertar("Elmore (01051)");
+        vecinosEjemplo.insertar("Lowndes (01085)");
 
+        String vecindad = generador.generarVecindad("Autauga (01001)", vecinosEjemplo);
+        String esperadoVecindad = "flowchart TD\n"
+                + "    C[\"Autauga (01001)\"]\n"
+                + "    C --- V1[\"Elmore (01051)\"]\n"
+                + "    C --- V2[\"Lowndes (01085)\"]\n";
+
+        if (!esperadoVecindad.equals(vecindad)) {
+            throw new AssertionError("El diagrama de vecindad generado fue:\n" + vecindad);
+        }
+        System.out.println("OK - Diagrama de un condado y dos vecinos");
         System.out.println("Ejemplo generado en " + archivo);
     }
 }

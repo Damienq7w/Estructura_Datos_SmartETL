@@ -89,4 +89,24 @@ public class GeneradorFlujograma {
             this.accion = accion;
         }
     }
+
+public String generarVecindad(String condado, ListaEnlazada<String> vecinos) {
+    StringBuilder mermaid = new StringBuilder("flowchart TD\n");
+    mermaid.append("    C[\"")
+            .append(escaparEtiqueta(condado))
+            .append("\"]\n");
+
+    int numero = 1;
+    for (String vecino : vecinos) {
+        mermaid.append("    C --- V")
+                .append(numero)
+                .append("[\"")
+                .append(escaparEtiqueta(vecino))
+                .append("\"]\n");
+        numero++;
+    }
+
+    return mermaid.toString();
+}
+
 }
