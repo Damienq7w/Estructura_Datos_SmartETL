@@ -1,5 +1,7 @@
+import estructuras.ListaEnlazada;
 import ia.Bitacora;
 import ia.Evento;
+import ia.Transicion;
 
 public class PruebaBitacora {
     public static void main(String[] args) {
@@ -46,6 +48,7 @@ public class PruebaBitacora {
                         && limitada.eventos().obtener(0).getNumero() == 1,
                 "Numeración reiniciada");
 
+        probarTablaTransiciones();
         System.out.println("Todas las comprobaciones de Bitacora pasaron.");
     }
 
@@ -54,5 +57,45 @@ public class PruebaBitacora {
             throw new AssertionError(nombre);
         }
         System.out.println("OK - " + nombre);
+    }
+
+    private static void probarTablaTransiciones() {
+        Bitacora bitacora = new Bitacora(20);
+        bitacora.activar();
+
+        comprobar(bitacora.tablaTransiciones().tamanio() == 0,
+                "Tabla con cero eventos");
+
+        bitacora.registrar("ETL", "DESENCOLAR", "");
+        comprobar(bitacora.tablaTransiciones().tamanio() == 0,
+                "Tabla con un evento");
+
+        String[] accionesRestantes = {
+            "VALIDAR", "AGREGAR_A_LISTA",
+            "DESENCOLAR", "VALIDAR", "APILAR_ERROR",
+            "DESENCOLAR", "VALIDAR", "AGREGAR_A_LISTA"
+        };
+
+        for (String accion : accionesRestantes) {
+            bitacora.registrar("ETL", accion, "");
+        }
+
+        ListaEnlazada<Transicion> tabla = bitacora.tablaTransiciones();
+        comprobar(tabla.tamanio() == 5, "Cinco transiciones distintas");
+
+        comprobarTransicion(tabla.obtener(0), "DESENCOLAR", "VALIDAR", 3);
+        comprobarTransicion(tabla.obtener(1), "VALIDAR", "AGREGAR_A_LISTA", 2);
+        comprobarTransicion(tabla.obtener(2), "AGREGAR_A_LISTA", "DESENCOLAR", 1);
+        comprobarTransicion(tabla.obtener(3), "VALIDAR", "APILAR_ERROR", 1);
+        comprobarTransicion(tabla.obtener(4), "APILAR_ERROR", "DESENCOLAR", 1);
+    }
+
+    private static void comprobarTransicion(Transicion transicion,
+                                            String origen, String destino,
+                                            int veces) {
+        comprobar(origen.equals(transicion.getOrigen())
+                        && destino.equals(transicion.getDestino())
+                        && transicion.getVeces() == veces,
+                origen + " -> " + destino + " (" + veces + ")");
     }
 }
