@@ -1,0 +1,5 @@
+Redacta en español un reporte del proceso de limpieza de datos del ETL y genera un flujograma Mermaid.
+
+Usa las cifras entregadas en el resumen. Presenta por archivo los registros leídos, válidos, reparados, con advertencias y rechazados, además de los rechazos por motivo cuando estén disponibles. Conserva todas las cifras e indica qué información falta.
+
+Construye el diagrama a partir de la tabla de transiciones. Usa solo las acciones, conexiones y conteos de la tabla. Si la tabla está vacía, indica que no hay transiciones registradas para dibujar. Coloca el diagrama en un bloque Mermaid que empiece con flowchart TD.

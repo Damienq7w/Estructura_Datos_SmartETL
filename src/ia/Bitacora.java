@@ -1,16 +1,21 @@
 package ia;
 
+import estructuras.ListaEnlazada;
+import estructuras.OyenteEventos;
 import java.util.Objects;
 
-import estructuras.ListaEnlazada;
-
-public class Bitacora {
+public class Bitacora implements OyenteEventos {
     private final int maxEventos;
     private ListaEnlazada<Evento> registro = new ListaEnlazada<>();
     private boolean activa = false;
 
     public Bitacora(int maxEventos) {
         this.maxEventos = maxEventos;
+    }
+
+    @Override
+    public void evento(String proceso, String accion, String detalle) {
+        registrar(proceso, accion, detalle);
     }
 
     public void registrar(String proceso, String accion, String detalle) {
@@ -46,7 +51,7 @@ public class Bitacora {
         return registro;
     }
 
-        public ListaEnlazada<Transicion> tablaTransiciones() {
+    public ListaEnlazada<Transicion> tablaTransiciones() {
         ListaEnlazada<Transicion> tabla = new ListaEnlazada<>();
         Evento anterior = null;
 
