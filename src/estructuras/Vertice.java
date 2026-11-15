@@ -11,30 +11,26 @@ public class Vertice<T> {
     private final ListaEnlazada<Vertice<T>> adyacentes;
 
     // Campos para los recorridos
-    private boolean visitado;
-    private Vertice<T> anterior;   // desde que vertice se llego
-    private int distancia;         // saltos desde el origen
+    private boolean visitado;      // empieza en false
+    private Vertice<T> anterior;   // desde que vertice se llego; empieza en null
+    private int distancia;         // saltos desde el origen; empieza en 0
 
     public Vertice(T dato) {
-        // TODO: guardar el dato y crear la lista de adyacentes vacia.
-        //       visitado empieza en false, anterior en null y distancia en 0.
         this.dato = dato;
-        this.adyacentes = null;   // <- cambia esto
+        this.adyacentes = new ListaEnlazada<>();
     }
 
-    // TODO: getters de dato y adyacentes.
-    public T getDato() { return null; }
-    public ListaEnlazada<Vertice<T>> getAdyacentes() { return null; }
+    public T getDato() { return dato; }
+    public ListaEnlazada<Vertice<T>> getAdyacentes() { return adyacentes; }
 
-    // TODO: getters y setters de visitado, anterior y distancia.
-    public boolean isVisitado() { return false; }
-    public void setVisitado(boolean visitado) { }
+    public boolean isVisitado() { return visitado; }
+    public void setVisitado(boolean visitado) { this.visitado = visitado; }
 
-    public Vertice<T> getAnterior() { return null; }
-    public void setAnterior(Vertice<T> anterior) { }
+    public Vertice<T> getAnterior() { return anterior; }
+    public void setAnterior(Vertice<T> anterior) { this.anterior = anterior; }
 
-    public int getDistancia() { return 0; }
-    public void setDistancia(int distancia) { }
+    public int getDistancia() { return distancia; }
+    public void setDistancia(int distancia) { this.distancia = distancia; }
 
     @Override
     public String toString() {

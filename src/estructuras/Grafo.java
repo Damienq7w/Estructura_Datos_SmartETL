@@ -23,67 +23,77 @@ public class Grafo<T> {
     }
 
     public Grafo(boolean dirigido) {
-        // TODO: crear la lista de vertices vacia y guardar si es dirigido.
-        this.vertices = null;   // <- cambia esto
+        this.vertices = new ListaEnlazada<>();
         this.dirigido = dirigido;
     }
 
     /**
      * Agrega un vertice con ese dato si todavia no existe.
      * @return true si lo agrego, false si ya existia.
-     *
-     * Pasos:
-     *  1. Si buscarVertice(dato) no es null, devolver false.
-     *  2. Crear un Vertice nuevo e insertarlo en la lista de vertices.
-     *  3. Devolver true.
      */
     public boolean agregarVertice(T dato) {
-        // TODO
-        return false;
+        if (buscarVertice(dato) != null) {
+            return false;
+        }
+        vertices.insertar(new Vertice<>(dato));
+        return true;
     }
 
     /**
      * Conecta origen con destino.
-     * @return true si agrego la arista; false si se rechazo.
-     *
-     * Pasos:
-     *  1. Si origen y destino son iguales (equals), devolver false:
-     *     un vertice no puede ser vecino de si mismo.
-     *  2. Buscar los dos vertices. Si alguno no existe, devolver false.
-     *  3. Si existeArista(origen, destino), devolver false (repetida).
-     *  4. Insertar el vertice destino en los adyacentes del origen.
-     *  5. Si NO es dirigido, insertar tambien el origen en los
-     *     adyacentes del destino.
-     *  6. Sumar 1 a aristas y devolver true.
+     * @return true si agrego la arista; false si se rechazo
+     *         (vertice consigo mismo, vertice inexistente o arista repetida).
      */
     public boolean agregarArista(T origen, T destino) {
-        // TODO
-        return false;
+        // 1. Un vertice no puede ser vecino de si mismo
+        if (origen.equals(destino)) {
+            return false;
+        }
+        // 2. Los dos vertices tienen que existir
+        Vertice<T> a = buscarVertice(origen);
+        Vertice<T> b = buscarVertice(destino);
+        if (a == null || b == null) {
+            return false;
+        }
+        // 3. No se repiten aristas
+        if (existeArista(origen, destino)) {
+            return false;
+        }
+        // 4. destino entra en la lista de vecinos de origen
+        a.getAdyacentes().insertar(b);
+        // 5. Si no es dirigido, tambien origen en la de destino
+        if (!dirigido) {
+            b.getAdyacentes().insertar(a);
+        }
+        // 6. Una arista mas
+        aristas++;
+        return true;
     }
 
-    /**
-     * Devuelve el vertice que tiene ese dato, o null si no existe.
-     *
-     * Pasos: recorrer la lista de vertices (for-each) y devolver el
-     * primero cuyo dato sea equals al buscado.
-     */
+    /** Devuelve el vertice que tiene ese dato, o null si no existe. */
     public Vertice<T> buscarVertice(T dato) {
-        // TODO
+        for (Vertice<T> v : vertices) {
+            if (v.getDato().equals(dato)) {
+                return v;
+            }
+        }
         return null;
     }
 
     /**
      * true si destino esta en la lista de vecinos de origen.
      * Solo mira la lista del origen (14 elementos como maximo).
-     *
-     * Pasos:
-     *  1. Buscar el vertice origen. Si no existe, devolver false.
-     *  2. Recorrer sus adyacentes; si alguno tiene el dato destino,
-     *     devolver true.
-     *  3. Si no aparecio, devolver false.
      */
     public boolean existeArista(T origen, T destino) {
-        // TODO
+        Vertice<T> a = buscarVertice(origen);
+        if (a == null) {
+            return false;
+        }
+        for (Vertice<T> vecino : a.getAdyacentes()) {
+            if (vecino.getDato().equals(destino)) {
+                return true;
+            }
+        }
         return false;
     }
 
@@ -92,18 +102,19 @@ public class Grafo<T> {
      * Esto resuelve el problema "condados que colindan con uno dado".
      */
     public ListaEnlazada<Vertice<T>> vecinos(T dato) {
-        // TODO
-        return null;
+        Vertice<T> v = buscarVertice(dato);
+        if (v == null) {
+            return null;
+        }
+        return v.getAdyacentes();
     }
 
     public int numeroVertices() {
-        // TODO: tamanio de la lista de vertices
-        return 0;
+        return vertices.tamanio();
     }
 
     public int numeroAristas() {
-        // TODO
-        return 0;
+        return aristas;
     }
 
     public boolean esDirigido() {
@@ -119,6 +130,10 @@ public class Grafo<T> {
      * visitado = false, anterior = null, distancia = 0.
      */
     public void reiniciarRecorrido() {
-        // TODO: recorrer los vertices y reiniciar los tres campos
+        for (Vertice<T> v : vertices) {
+            v.setVisitado(false);
+            v.setAnterior(null);
+            v.setDistancia(0);
+        }
     }
 }
