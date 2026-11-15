@@ -1,6 +1,7 @@
 package etl;
 
 import estructuras.Cola;
+import estructuras.Grafo;
 import estructuras.ListaEnlazada;
 import estructuras.Pila;
 import model.CasoDiario;
@@ -32,6 +33,10 @@ public class Transform {
 
     private final Conteo conteoCasos = new Conteo();
     private final Conteo conteoCondados = new Conteo();
+    private final Conteo conteoVecindad = new Conteo();
+
+    // Grafo de condados vecinos (no dirigido): cada condado es un vertice
+    private final Grafo<Condado> grafo = new Grafo<>();
 
     // =====================================================================
     // Parte 3: casos diarios
@@ -220,6 +225,95 @@ public class Transform {
     }
 
     // =====================================================================
+    // Parte 7: vecindad y construccion del grafo
+    // =====================================================================
+
+    /**
+     * Vacia la cola de vecindad y construye el grafo de condados vecinos.
+     *
+     * Cada fila dice "origen colinda con destino". El archivo trae cada
+     * par dos veces (A-B y B-A) y cada condado como vecino de si mismo,
+     * asi que de 22.200 filas solo 9.483 son aristas nuevas.
+     */
+    public void transformarVecindad(Cola<RegistroCrudo> cola) {
+        while (!cola.estaVacia()) {
+            RegistroCrudo registro = cola.desencolar();
+            conteoVecindad.sumarLeido();
+
+            String[] c = registro.getCampos();
+            int linea = registro.getNumeroLinea();
+
+            ErrorETL error = reglaColumnas("vecindad", linea, c, Esquema.CABECERA_VECINDAD.length);
+            if (error == null) error = reglaFipsVecindad(linea, c);
+            if (error != null) {
+                rechazar(error, conteoVecindad);
+                continue;
+            }
+
+            // 1. Arreglar los dos FIPS a 5 digitos
+            Condado origen = crearCondadoVecindad(c, Esquema.VECINDAD_COL_FIPS_ORIGEN,
+                    Esquema.VECINDAD_COL_NOMBRE_ORIGEN);
+            Condado destino = crearCondadoVecindad(c, Esquema.VECINDAD_COL_FIPS_DESTINO,
+                    Esquema.VECINDAD_COL_NOMBRE_DESTINO);
+
+            // Los vertices se agregan siempre (si no existen), aun en la fila
+            // "vecino de si mismo": asi un condado sin vecinos (una isla)
+            // tambien queda en el grafo.
+            grafo.agregarVertice(origen);
+            grafo.agregarVertice(destino);
+
+            // 2. Un condado vecino de si mismo
+            if (origen.equals(destino)) {
+                rechazar(new ErrorETL("vecindad", linea, TipoError.AUTO_VECINDAD,
+                        "fips = " + origen.getFips()), conteoVecindad);
+                continue;
+            }
+
+            // 3. Si la arista ya existia (llego antes como B-A): duplicado.
+            //    agregarArista solo mira la lista de vecinos del origen.
+            if (grafo.agregarArista(origen, destino)) {
+                conteoVecindad.sumarValido();
+            } else {
+                rechazar(new ErrorETL("vecindad", linea, TipoError.DUPLICADO,
+                        origen.getFips() + " - " + destino.getFips()), conteoVecindad);
+            }
+        }
+    }
+
+    /** Los dos FIPS tienen que poder arreglarse a 5 digitos. */
+    private ErrorETL reglaFipsVecindad(int linea, String[] c) {
+        String fipsOrigen = c[Esquema.VECINDAD_COL_FIPS_ORIGEN];
+        String fipsDestino = c[Esquema.VECINDAD_COL_FIPS_DESTINO];
+        if (arreglarFips(fipsOrigen) == null || arreglarFips(fipsDestino) == null) {
+            return new ErrorETL("vecindad", linea, TipoError.NO_ES_CONDADO,
+                    "fips = " + limpiarTexto(fipsOrigen) + " / " + limpiarTexto(fipsDestino));
+        }
+        return null;
+    }
+
+    /**
+     * Crea el Condado de una columna de la vecindad, con el FIPS ya
+     * arreglado. El nombre viene como "Autauga County, AL": lo que va
+     * despues de la ultima coma es el estado.
+     */
+    private Condado crearCondadoVecindad(String[] c, int colFips, int colNombre) {
+        String fipsOriginal = limpiarTexto(c[colFips]);
+        String fips = arreglarFips(fipsOriginal);
+        if (!fips.equals(fipsOriginal)) {
+            conteoVecindad.sumarReparado();
+        }
+        String nombreCompleto = limpiarTexto(c[colNombre]);
+        String nombre = nombreCompleto;
+        String estado = "";
+        int coma = nombreCompleto.lastIndexOf(',');
+        if (coma >= 0) {
+            nombre = nombreCompleto.substring(0, coma).trim();
+            estado = nombreCompleto.substring(coma + 1).trim();
+        }
+        return new Condado(fips, nombre, estado);
+    }
+
+    // =====================================================================
     // Comun
     // =====================================================================
 
@@ -234,6 +328,10 @@ public class Transform {
     public Pila<ErrorETL> getErrores() { return errores; }
     public Conteo getConteoCasos() { return conteoCasos; }
     public Conteo getConteoCondados() { return conteoCondados; }
+    public Conteo getConteoVecindad() { return conteoVecindad; }
+
+    /** El grafo de condados vecinos, para Joel (BFS) y Kenneth (DFS). */
+    public Grafo<Condado> getGrafo() { return grafo; }
 
     // =====================================================================
     // Parte 2: metodos de arreglo (sabado)
