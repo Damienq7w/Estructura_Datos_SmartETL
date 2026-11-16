@@ -185,6 +185,61 @@ public class ArbolBST<T extends Comparable<T>> {
         insertarMedios(ordenados, medio + 1, hasta);
     }
 
+    // quita el dato del arbol; devuelve false si no estaba.
+    // tres casos: hoja, un solo hijo y dos hijos
+    public boolean eliminar(T dato) {
+        if (dato == null) {
+            return false;
+        }
+
+        // buscar el nodo y recordar a su padre
+        NodoArbol<T> padre = null;
+        NodoArbol<T> actual = raiz;
+        while (actual != null) {
+            int resultado = dato.compareTo(actual.getDato());
+            if (resultado == 0) {
+                break;
+            }
+            padre = actual;
+            if (resultado < 0) {
+                actual = actual.getIzquierdo();
+            } else {
+                actual = actual.getDerecho();
+            }
+        }
+        if (actual == null) {
+            return false;
+        }
+
+        // caso 3, dos hijos: se copia el sucesor (el menor del subarbol
+        // derecho) y el nodo que se quita pasa a ser el sucesor, que
+        // nunca tiene hijo izquierdo: queda un caso 1 o 2
+        if (actual.getIzquierdo() != null && actual.getDerecho() != null) {
+            NodoArbol<T> padreSucesor = actual;
+            NodoArbol<T> sucesor = actual.getDerecho();
+            while (sucesor.getIzquierdo() != null) {
+                padreSucesor = sucesor;
+                sucesor = sucesor.getIzquierdo();
+            }
+            actual.setDato(sucesor.getDato());
+            padre = padreSucesor;
+            actual = sucesor;
+        }
+
+        // casos 1 y 2: el unico hijo (o null si es hoja) sube a su lugar
+        NodoArbol<T> hijo = actual.getIzquierdo() != null
+                ? actual.getIzquierdo() : actual.getDerecho();
+        if (padre == null) {
+            raiz = hijo;
+        } else if (padre.getIzquierdo() == actual) {
+            padre.setIzquierdo(hijo);
+        } else {
+            padre.setDerecho(hijo);
+        }
+        cantidad--;
+        return true;
+    }
+
     public void vaciar() {
         raiz = null;
         cantidad = 0;

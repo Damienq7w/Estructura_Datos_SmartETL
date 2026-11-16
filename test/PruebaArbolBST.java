@@ -31,6 +31,12 @@ public class PruebaArbolBST {
         probarPorMediosConservaDatos();
         probarPorMediosCasosLimite();
         probarExperimentoCatalogo();
+        probarEliminarHoja();
+        probarEliminarConUnHijo();
+        probarEliminarConDosHijos();
+        probarEliminarRaiz();
+        probarEliminarInexistente();
+        probarEliminarHastaVaciar();
 
         System.out.println();
         System.out.println("Pruebas OK: " + pruebasOk);
@@ -348,5 +354,84 @@ public class PruebaArbolBST {
         }
         reportar("Insertar nulo", lanzo && arbol.estaVacio(),
                 "insertar null deberia lanzar IllegalArgumentException y no cambiar el arbol");
+    }
+
+    // caso 1: 20 es una hoja
+    private static void probarEliminarHoja() {
+        ArbolBST<Integer> arbol = arbolDeEjemplo();
+        boolean eliminado = arbol.eliminar(20);
+        reportar("Eliminar hoja",
+                eliminado && arbol.contarNodos() == 6 && arbol.tamanio() == 6
+                        && coincide(arbol.inOrden(), new int[] { 30, 40, 50, 60, 70, 80 }),
+                "inOrden obtenido: " + texto(arbol.inOrden()));
+    }
+
+    // caso 2: sin el 20, el 30 queda con un solo hijo (40), que sube a su lugar
+    private static void probarEliminarConUnHijo() {
+        ArbolBST<Integer> arbol = arbolDeEjemplo();
+        arbol.eliminar(20);
+        boolean eliminado = arbol.eliminar(30);
+        reportar("Eliminar nodo con un hijo",
+                eliminado && arbol.contarNodos() == 5
+                        && coincide(arbol.preOrden(), new int[] { 50, 40, 70, 60, 80 }),
+                "preOrden obtenido: " + texto(arbol.preOrden()));
+    }
+
+    // caso 3: 30 tiene dos hijos; su sucesor (40) ocupa su lugar
+    private static void probarEliminarConDosHijos() {
+        ArbolBST<Integer> arbol = arbolDeEjemplo();
+        boolean eliminado = arbol.eliminar(30);
+        reportar("Eliminar nodo con dos hijos",
+                eliminado && arbol.contarNodos() == 6 && arbol.buscar(30) == null
+                        && coincide(arbol.preOrden(), new int[] { 50, 40, 20, 70, 60, 80 }),
+                "preOrden obtenido: " + texto(arbol.preOrden()));
+    }
+
+    // la raiz con dos hijos, y la raiz cuando es el unico nodo
+    private static void probarEliminarRaiz() {
+        ArbolBST<Integer> arbol = arbolDeEjemplo();
+        boolean eliminado = arbol.eliminar(50);
+
+        ArbolBST<Integer> unNodo = new ArbolBST<>();
+        unNodo.insertar(7);
+        boolean eliminadoUnico = unNodo.eliminar(7);
+
+        reportar("Eliminar la raiz",
+                eliminado && coincide(arbol.preOrden(), new int[] { 60, 30, 20, 40, 70, 80 })
+                        && eliminadoUnico && unNodo.estaVacio() && unNodo.tamanio() == 0,
+                "preOrden obtenido: " + texto(arbol.preOrden()));
+    }
+
+    private static void probarEliminarInexistente() {
+        ArbolBST<Integer> arbol = arbolDeEjemplo();
+        ArbolBST<Integer> vacio = new ArbolBST<>();
+        reportar("Eliminar inexistente",
+                !arbol.eliminar(99) && !arbol.eliminar(null) && !vacio.eliminar(1)
+                        && arbol.contarNodos() == 7 && arbol.tamanio() == 7,
+                "eliminar una clave que no esta deberia devolver false y no cambiar el arbol");
+    }
+
+    // despues de cada eliminacion: inOrden sigue ordenado y hay un nodo menos
+    private static void probarEliminarHastaVaciar() {
+        ArbolBST<Integer> arbol = arbolDeEjemplo();
+        int[] orden = { 50, 20, 70, 30, 80, 40, 60 };
+        int esperados = 7;
+        boolean correcto = true;
+
+        for (int clave : orden) {
+            correcto = correcto && arbol.eliminar(clave);
+            esperados--;
+
+            int anterior = Integer.MIN_VALUE;
+            for (int valor : arbol.inOrden()) {
+                correcto = correcto && valor > anterior;
+                anterior = valor;
+            }
+            correcto = correcto && arbol.contarNodos() == esperados
+                    && arbol.tamanio() == esperados && arbol.buscar(clave) == null;
+        }
+
+        reportar("Eliminar hasta vaciar", correcto && arbol.estaVacio() && arbol.altura() == 0,
+                "tras cada eliminacion inOrden debe seguir ordenado y contarNodos bajar en 1");
     }
 }
