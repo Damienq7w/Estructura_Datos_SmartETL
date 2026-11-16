@@ -1,0 +1,9 @@
+"county_name"	"county_id"	"adjacent_county_name"	"adjacent_county_id"
+"Autauga County, AL"	01001	"Chilton County, AL"	01021
+"Chilton County, AL"	01021	"Autauga County, AL"	01001
+"Autauga County, AL"	01001	"Elmore County, AL"	01051
+"Chilton County, AL"	01021	"Elmore County, AL"	01051
+"Elmore County, AL"	01051	"Montgomery County, AL"	01101
+"Adjuntas Municipio, PR"	72001	"Lares Municipio, PR"	72081
+"Adjuntas Municipio, PR"	72001	"Utuado Municipio, PR"	72141
+"Honolulu County, HI"	15003	"Honolulu County, HI"	15003
