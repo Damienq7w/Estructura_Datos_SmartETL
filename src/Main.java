@@ -58,6 +58,14 @@ public class Main {
         System.out.println(" 7. Ver condados y vecindad");
         System.out.println(" 8. Comparar ListaEnlazada vs ListaSecuencial");
         System.out.println(" 9. Ver esquema fijo de la base");
+        System.out.println("--- Proceso ETL (cola, Transform y Load) ---");
+        System.out.println("10. Ejecutar ETL completo");
+        System.out.println("11. ETL paso 1: extraer a la cola");
+        System.out.println("12. ETL paso 2: ver la cola");
+        System.out.println("13. ETL paso 3: transformar");
+        System.out.println("14. ETL paso 4: ver los validos");
+        System.out.println("15. ETL paso 5: ver la pila de errores");
+        System.out.println("16. ETL paso 6: cargar a output/");
         System.out.println(" 0. Salir");
         System.out.print("Elija una opcion: ");
     }

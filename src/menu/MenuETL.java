@@ -7,9 +7,14 @@ import java.util.Scanner;
 import algoritmos.Busqueda;
 import estructuras.ListaEnlazada;
 import estructuras.ListaSecuencial;
+import estructuras.Cola;
+import etl.EjecutorETL;
 import etl.Extract;
 import model.CasoDiario;
 import model.Esquema;
+import model.RegistroCrudo;
+import model.ResumenETL;
+import model.TipoError;
 
 public class MenuETL {
 
@@ -47,6 +52,27 @@ public class MenuETL {
                 return true;
             case 9:
                 mostrarEsquema();
+                return true;
+            case 10:
+                ejecutarEtlCompleto(teclado);
+                return true;
+            case 11:
+                etlExtraer(teclado);
+                return true;
+            case 12:
+                etlMostrarCola();
+                return true;
+            case 13:
+                etlTransformar();
+                return true;
+            case 14:
+                etlMostrarValidos();
+                return true;
+            case 15:
+                etlMostrarPilaErrores();
+                return true;
+            case 16:
+                etlCargar();
                 return true;
             default:
                 return false;
@@ -198,5 +224,151 @@ public class MenuETL {
         System.out.println("casos_diarios.csv: " + Arrays.toString(Esquema.CABECERA_CASOS_DIARIOS));
         System.out.println("condados.csv: " + Arrays.toString(Esquema.CABECERA_CONDADOS));
         System.out.println("vecindad.tsv: " + Arrays.toString(Esquema.CABECERA_VECINDAD));
+    }
+
+    // ---------------------------------------------------------------
+    // Proceso ETL: Extract -> Cola -> Transform -> Load
+    // El menu pide, llama a EjecutorETL y muestra. No calcula nada.
+    // ---------------------------------------------------------------
+
+    private static final int MOSTRAR = 10;
+
+    private boolean preguntarDatosDePrueba(Scanner teclado) {
+        System.out.println("Datos a usar: 1 = base real (data/), 2 = datos de prueba (data/pruebas/)");
+        System.out.print("Elija (1 o 2): ");
+        return teclado.nextLine().trim().equals("2");
+    }
+
+    private void ejecutarEtlCompleto(Scanner teclado) {
+        EjecutorETL etl = estado.nuevoEtl(preguntarDatosDePrueba(teclado));
+        try {
+            System.out.println("Extract, Transform y Load en curso...");
+            ResumenETL resumen = etl.ejecutarTodo();
+            mostrarResumen(resumen);
+            System.out.println("Archivos escritos en: " + etl.getLoad().ruta(""));
+        } catch (java.io.IOException | IllegalStateException e) {
+            System.out.println("No se pudo completar el ETL: " + e.getMessage());
+        }
+    }
+
+    private void etlExtraer(Scanner teclado) {
+        EjecutorETL etl = estado.nuevoEtl(preguntarDatosDePrueba(teclado));
+        try {
+            etl.extraer();
+            System.out.println("Filas de condados en la cola: " + etl.getColaCondados().tamanio());
+            System.out.println("Filas de casos en la cola: " + etl.getColaCasos().tamanio());
+            System.out.println("Filas de vecindad en la cola: " + etl.getColaVecindad().tamanio());
+            System.out.println("Siguiente paso: opcion 12 (ver la cola) o 13 (transformar)");
+        } catch (java.io.IOException e) {
+            System.out.println("No se pudo extraer: " + e.getMessage());
+        }
+    }
+
+    private boolean etlSinExtraer() {
+        if (estado.getEtl() == null || !estado.getEtl().estaExtraido()) {
+            System.out.println("Primero ejecute la opcion 11 (extraer a la cola)");
+            return true;
+        }
+        return false;
+    }
+
+    private boolean etlSinTransformar() {
+        if (estado.getEtl() == null || !estado.getEtl().estaTransformado()) {
+            System.out.println("Primero ejecute la opcion 13 (transformar)");
+            return true;
+        }
+        return false;
+    }
+
+    private void etlMostrarCola() {
+        if (etlSinExtraer()) {
+            return;
+        }
+        EjecutorETL etl = estado.getEtl();
+        mostrarFrenteDeCola("condados", etl.getColaCondados());
+        mostrarFrenteDeCola("casos", etl.getColaCasos());
+        mostrarFrenteDeCola("vecindad", etl.getColaVecindad());
+    }
+
+    // la cola solo deja ver su frente sin sacar nada
+    private void mostrarFrenteDeCola(String nombre, Cola<RegistroCrudo> cola) {
+        System.out.println("Cola de " + nombre + ": " + cola.tamanio() + " filas");
+        if (cola.estaVacia()) {
+            System.out.println("  (vacia: ya se transformo)");
+        } else {
+            RegistroCrudo frente = cola.frente();
+            System.out.println("  Frente -> linea " + frente.getNumeroLinea() + ": " + frente.mostrar());
+        }
+    }
+
+    private void etlTransformar() {
+        if (etlSinExtraer()) {
+            return;
+        }
+        EjecutorETL etl = estado.getEtl();
+        try {
+            etl.transformar();
+        } catch (IllegalStateException e) {
+            System.out.println(e.getMessage());
+            return;
+        }
+        mostrarResumen(etl.getResumen());
+        System.out.println("Siguiente paso: opcion 14, 15 o 16");
+    }
+
+    private void etlMostrarValidos() {
+        if (etlSinTransformar()) {
+            return;
+        }
+        EjecutorETL etl = estado.getEtl();
+        System.out.println("Casos validos: " + etl.getCasosValidos().tamanio() + " (primeros " + MOSTRAR + ")");
+        etl.getCasosValidos().mostrar(MOSTRAR);
+        System.out.println("Condados validos: " + etl.getCondadosValidos().tamanio() + " (primeros " + MOSTRAR + ")");
+        etl.getCondadosValidos().mostrar(MOSTRAR);
+        System.out.println("Grafo de vecindad: " + etl.getGrafo().numeroVertices() + " vertices y "
+                + etl.getGrafo().numeroAristas() + " aristas");
+    }
+
+    private void etlMostrarPilaErrores() {
+        if (etlSinTransformar()) {
+            return;
+        }
+        System.out.println("Errores en la pila: " + estado.getEtl().getErrores().tamanio()
+                + " (desde la cima, primeros " + MOSTRAR + ")");
+        estado.getEtl().getErrores().mostrar(MOSTRAR);
+    }
+
+    private void etlCargar() {
+        if (etlSinTransformar()) {
+            return;
+        }
+        EjecutorETL etl = estado.getEtl();
+        try {
+            etl.cargar();
+            System.out.println("Archivos escritos en: " + etl.getLoad().ruta(""));
+            System.out.println("  casos_limpios.csv, condados_limpios.csv, errores_etl.txt, reporte_etl.txt");
+        } catch (java.io.IOException e) {
+            System.out.println("No se pudo escribir: " + e.getMessage());
+        }
+    }
+
+    private void mostrarResumen(ResumenETL resumen) {
+        System.out.println();
+        mostrarContadores("Casos", resumen.getCasos());
+        mostrarContadores("Condados", resumen.getCondados());
+        mostrarContadores("Vecindad", resumen.getVecindad());
+        System.out.println("Cuadra (leidos = validos + rechazados): " + (resumen.cuadra() ? "SI" : "NO"));
+        System.out.println("Tiempo: " + resumen.getTiempoMs() + " ms");
+    }
+
+    private void mostrarContadores(String titulo, ResumenETL.Contadores c) {
+        System.out.println(titulo + ": leidos " + c.getLeidos() + ", validos " + c.getValidos()
+                + ", reparados " + c.getReparados() + ", advertencias " + c.getAdvertencias()
+                + ", rechazados " + c.getRechazados());
+        for (TipoError tipo : TipoError.values()) {
+            if (c.getRechazadosPorTipo(tipo) > 0) {
+                System.out.println("    " + tipo + ": " + c.getRechazadosPorTipo(tipo));
+            }
+        }
     }
 }
