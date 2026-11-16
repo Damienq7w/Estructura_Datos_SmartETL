@@ -1,0 +1,41 @@
+Redacta en español un reporte del proceso de limpieza de datos del ETL y genera un flujograma Mermaid.
+
+Usa las cifras entregadas en el resumen. Presenta por archivo los registros leídos, válidos, reparados, con advertencias y rechazados, además de los rechazos por motivo cuando estén disponibles. Conserva todas las cifras e indica qué información falta.
+
+Construye el diagrama a partir de la tabla de transiciones. Usa solo las acciones, conexiones y conteos de la tabla. Si la tabla está vacía, indica que no hay transiciones registradas para dibujar. Coloca el diagrama en un bloque Mermaid que empiece con flowchart TD.
+
+Resumen del ETL por archivo
+Casos diarios
+Leídos: 42
+Válidos: 36
+Reparados: 0
+Con advertencias: 2
+Rechazados: 6
+Rechazos por COLUMNAS_INCOMPLETAS: 1
+Rechazos por CONDADO_DESCONOCIDO: 1
+Rechazos por AREA_SIN_FIPS: 1
+Rechazos por VALOR_NO_NUMERICO: 1
+Rechazos por VALOR_NEGATIVO: 1
+Rechazos por FECHA_INVALIDA: 1
+
+Condados
+Leídos: 9
+Válidos: 8
+Reparados: 2
+Con advertencias: 0
+Rechazados: 1
+Rechazos por NO_ES_CONDADO: 1
+
+Vecindad
+Leídos: 8
+Válidos: 6
+Reparados: 0
+Con advertencias: 0
+Rechazados: 2
+Rechazos por DUPLICADO: 1
+Rechazos por AUTO_VECINDAD: 1
+
+Tabla de transiciones
+Origen | Destino | Veces
+Leer archivos y encolar filas | Validar filas y separar válidos y errores | 1
+Validar filas y separar válidos y errores | Escribir archivos limpios, errores y reporte | 1
