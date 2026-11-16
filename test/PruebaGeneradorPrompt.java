@@ -1,3 +1,5 @@
+import estructuras.ListaEnlazada;
+import etl.EjecutorETL;
 import ia.Bitacora;
 import ia.GeneradorPrompt;
 import java.io.IOException;
@@ -32,6 +34,34 @@ public class PruebaGeneradorPrompt {
         comprobar(prompt.contains("LEER | VALIDAR | 2")
                         && prompt.contains("VALIDAR | LEER | 1"),
                 "El prompt incluye las transiciones y sus conteos");
+
+        probarConResumenETL();
+    }
+
+    private static void probarConResumenETL() throws IOException {
+        EjecutorETL etl = new EjecutorETL(
+                "data/pruebas/casos_prueba.csv",
+                "data/pruebas/condados_prueba.csv",
+                "data/pruebas/vecindad_prueba.tsv",
+                "output");
+        etl.extraer();
+        etl.transformar();
+
+        String prompt = new GeneradorPrompt()
+                .generarReporteETL(etl.getResumen(), new ListaEnlazada<>());
+
+        comprobar(prompt.contains("Casos diarios\nLeídos: 42\n")
+                        && prompt.contains("Con advertencias: 2\n")
+                        && prompt.contains("Rechazos por AREA_SIN_FIPS: 1\n"),
+                "El prompt incluye las cifras reales de casos");
+        comprobar(prompt.contains("Condados\nLeídos: 9\nVálidos: 8\nReparados: 2\n")
+                        && prompt.contains("Rechazos por NO_ES_CONDADO: 1\n"),
+                "El prompt incluye las cifras reales de condados");
+        comprobar(prompt.contains("Vecindad\nLeídos: 8\nVálidos: 6\n")
+                        && prompt.contains("Rechazos por AUTO_VECINDAD: 1\n"),
+                "El prompt incluye las cifras reales de vecindad");
+        comprobar(prompt.endsWith("Origen | Destino | Veces\n"),
+                "La tabla vacía no añade transiciones");
     }
 
     private static void comprobar(boolean condicion, String mensaje) {
