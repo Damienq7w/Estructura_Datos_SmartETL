@@ -1,0 +1,43 @@
+date,county,state,fips,cases,deaths
+2021-03-01,Autauga,Alabama,01001,107,2
+2021-03-01,Chilton,Alabama,01021,67,1
+2021-03-01,Elmore,Alabama,01051,87,1
+2021-03-01,Adjuntas,Puerto Rico,72001,37,
+2021-03-01,Honolulu,Hawaii,15003,211,3
+2021-03-02,Autauga,Alabama,01001,114,3
+2021-03-02,Chilton,Alabama,01021,74,2
+2021-03-02,Elmore,Alabama,01051,94,2
+2021-03-02,Adjuntas,Puerto Rico,72001,44,
+2021-03-02,Honolulu,Hawaii,15003,222,4
+2021-03-02,Unknown,Alabama,,12,0
+2021-03-03,Autauga,Alabama,01001,121,3
+2021-03-03,Chilton,Alabama,01021,81,2
+2021-03-03,Elmore,Alabama,01051,101,2
+2021-03-03,Adjuntas,Puerto Rico,72001,51,1
+2021-03-03,Honolulu,Hawaii,15003,233,4
+2021-03-03,New York City,New York,,8420,312
+2021-03-04,Autauga,Alabama,01001,128,4
+2021-03-04,Chilton,Alabama,01021,88,3
+2021-03-04,Elmore,Alabama,01051,108,3
+2021-03-04,Adjuntas,Puerto Rico,72001,58,2
+2021-03-04,Honolulu,Hawaii,15003,244,5
+2021-03-04,Montgomery,Alabama,01101,abc,12
+2021-03-05,Autauga,Alabama,01001,135,4
+2021-03-05,Chilton,Alabama,01021,95,3
+2021-03-05,Elmore,Alabama,01051,115,3
+2021-03-05,Adjuntas,Puerto Rico,72001,65,3
+2021-03-05,Honolulu,Hawaii,15003,255,5
+2021-03-05,Montgomery,Alabama,01101,-5,3
+2021-13-40,Montgomery,Alabama,01101,50,2
+2021-03-06,Autauga,Alabama,01001,142,5
+2021-03-06,Chilton,Alabama,01021,102,4
+2021-03-06,Chilton,Alabama,01021,102,4
+2021-03-06,Elmore,Alabama,01051,122,4
+2021-03-06,Adjuntas,Puerto Rico,72001,72,4
+2021-03-06,Honolulu,Hawaii,15003,266,6
+2021-03-06,Elmore,Alabama
+2021-03-07,Autauga,Alabama,01001,149,5
+2021-03-07,Chilton,Alabama,01021,109,4
+2021-03-07,Elmore,Alabama,01051,129,4
+2021-03-07,Adjuntas,Puerto Rico,72001,79,5
+2021-03-07,Honolulu,Hawaii,15003,277,6
