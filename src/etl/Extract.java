@@ -1,6 +1,8 @@
 package etl;
 
 import estructuras.ListaEnlazada;
+import estructuras.Cola;
+import model.RegistroCrudo;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -10,6 +12,47 @@ import model.Esquema;
 import model.Vecindad;
 
 public class Extract {
+
+    // Contadores acumulados exclusivos de la lectura cruda.
+    private int casosEncolados, condadosEncolados, vecindadEncolada;
+
+    public int getCasosEncolados() { return casosEncolados; }
+    public int getCondadosEncolados() { return condadosEncolados; }
+    public int getVecindadEncolada() { return vecindadEncolada; }
+
+    public void encolarCasos(String ruta, Cola<RegistroCrudo> cola) throws IOException {
+        encolarArchivo(ruta, cola, Esquema.CABECERA_CASOS_DIARIOS, false, 0);
+    }
+
+    public void encolarCondados(String ruta, Cola<RegistroCrudo> cola) throws IOException {
+        encolarArchivo(ruta, cola, Esquema.CABECERA_CONDADOS, false, 1);
+    }
+
+    public void encolarVecindad(String ruta, Cola<RegistroCrudo> cola) throws IOException {
+        encolarArchivo(ruta, cola, Esquema.CABECERA_VECINDAD, true, 2);
+    }
+
+    private void encolarArchivo(String ruta, Cola<RegistroCrudo> cola,
+            String[] cabecera, boolean tsv, int tipo) throws IOException {
+        java.util.Objects.requireNonNull(cola, "La cola es obligatoria");
+        try (BufferedReader br = new BufferedReader(new FileReader(ruta))) {
+            String linea = br.readLine();
+            if (linea == null || !Esquema.cabeceraValida(
+                    tsv ? separarTsv(linea) : separarCsv(linea), cabecera)) {
+                incidencias.insertar(ruta + " rechazado: la cabecera no coincide con el esquema");
+                return;
+            }
+            int numeroLinea = 1;
+            while ((linea = br.readLine()) != null) {
+                numeroLinea++;
+                cola.encolar(new RegistroCrudo(numeroLinea,
+                        tsv ? separarTsv(linea) : separarCsv(linea)));
+                if (tipo == 0) casosEncolados++;
+                else if (tipo == 1) condadosEncolados++;
+                else vecindadEncolada++;
+            }
+        }
+    }
 
     private int casosLeidas, casosCargadas, casosDescartadas;
     private int casosSinFips, casosCondadoUnknown, casosMuertesVacias;

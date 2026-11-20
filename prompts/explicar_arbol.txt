@@ -1,0 +1,1 @@
+Explica en español el árbol de esta ejecución usando su número de nodos, altura, raíz y primeros niveles. Conserva las cifras y señala cualquier dato que falte.

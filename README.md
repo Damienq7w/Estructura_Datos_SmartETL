@@ -11,7 +11,7 @@ Estados Unidos y los carga en estructuras de datos implementadas manualmente (si
 
 ## Problema y dominio
 
-**Dominio:** epidemiología territorial (caso *Epidemiología* de la sección 23 del enunciado).
+**Dominio:** epidemiología territorial (caso _Epidemiología_ de la sección 23 del enunciado).
 
 **Problema:** durante 2021, los departamentos de salud de Estados Unidos reportaron cada día los
 casos y muertes por COVID-19 de cada condado. Esos reportes llegan como un archivo de más de un
@@ -32,7 +32,7 @@ base de datos.
    procesarlos todavía.
 4. **Muestra un resumen de la carga** al terminar la extracción: cuántas filas se leyeron, cuántas
    se cargaron y cuántas se descartaron por formato en cada archivo, y cuántos **posibles errores**
-   trae la base (ver la tabla de la sección *Base de datos*). En esta entrega los errores solo se
+   trae la base (ver la tabla de la sección _Base de datos_). En esta entrega los errores solo se
    **detectan y cuentan**; separarlos, corregirlos y registrarlos con su motivo corresponde al
    Transform (Hito 2).
 5. **Permite consultar** los datos: mostrar registros, buscar un condado por código FIPS o por
@@ -94,11 +94,11 @@ que también pide el enunciado para el 1 de octubre, se presenta como diagrama e
 La base es **fija**: el sistema trabaja contra estas columnas exactas y rechaza cualquier archivo
 con otro formato.
 
-| Archivo | Formato | Columnas originales | Filas | En el repo | Fuente | Descarga directa |
-| --- | --- | --- | --- | --- | --- | --- |
-| `casos_diarios.csv` | comas | `date,county,state,fips,cases,deaths` | 1.185.373 | ❌ | [The New York Times — covid-19-data](https://github.com/nytimes/covid-19-data) | [us-counties-2021.csv](https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties-2021.csv) |
-| `condados.csv` | comas | `fips,name,state` | 3.195 | ✅ | [kjhealy/fips-codes](https://github.com/kjhealy/fips-codes) | [state_and_county_fips_master.csv](https://raw.githubusercontent.com/kjhealy/fips-codes/master/state_and_county_fips_master.csv) |
-| `vecindad.tsv` | tabulaciones, con comillas | `county_name`, `county_id`, `adjacent_county_name`, `adjacent_county_id` | 22.200 | ✅ | [turibe/us-county-adjacency](https://github.com/turibe/us-county-adjacency) | [county_adjacency.tsv](https://raw.githubusercontent.com/turibe/us-county-adjacency/main/county_adjacency.tsv) |
+| Archivo             | Formato                    | Columnas originales                                                      | Filas     | En el repo | Fuente                                                                         | Descarga directa                                                                                                                 |
+| ------------------- | -------------------------- | ------------------------------------------------------------------------ | --------- | ---------- | ------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------- |
+| `casos_diarios.csv` | comas                      | `date,county,state,fips,cases,deaths`                                    | 1.185.373 | ❌         | [The New York Times — covid-19-data](https://github.com/nytimes/covid-19-data) | [us-counties-2021.csv](https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties-2021.csv)                      |
+| `condados.csv`      | comas                      | `fips,name,state`                                                        | 3.195     | ✅         | [kjhealy/fips-codes](https://github.com/kjhealy/fips-codes)                    | [state_and_county_fips_master.csv](https://raw.githubusercontent.com/kjhealy/fips-codes/master/state_and_county_fips_master.csv) |
+| `vecindad.tsv`      | tabulaciones, con comillas | `county_name`, `county_id`, `adjacent_county_name`, `adjacent_county_id` | 22.200    | ✅         | [turibe/us-county-adjacency](https://github.com/turibe/us-county-adjacency)    | [county_adjacency.tsv](https://raw.githubusercontent.com/turibe/us-county-adjacency/main/county_adjacency.tsv)                   |
 
 Los tres archivos se guardan **exactamente como los publica su fuente**, sin limpiar ni corregir
 nada. Los problemas que traen son reales y forman parte del trabajo del proyecto: en esta entrega
@@ -106,16 +106,16 @@ el programa los **detecta y cuenta**; desde el Hito 2, el Transform los separar�
 
 ### Posibles errores que trae la base
 
-| Archivo | Problema | Cantidad | Qué pide el enunciado |
-| --- | --- | --- | --- |
-| `casos_diarios.csv` | `deaths` vacío | 28.470 | Campos incompletos |
-| `casos_diarios.csv` | Sin código FIPS | 10.803 | Validar identificadores |
-| `casos_diarios.csv` | `county = Unknown` | 9.708 | Validar identificadores |
-| `condados.csv` | Fila del país mezclada con los condados | 1 | Validar identificadores |
-| `condados.csv` | Filas de estados mezcladas con los condados | 51 | Validar identificadores |
-| `condados.csv` | FIPS de 4 dígitos, sin el cero (`1001` en vez de `01001`) | 316 | Normalizar |
-| `vecindad.tsv` | Condado vecino de sí mismo | 3.234 | Relaciones inconsistentes |
-| `vecindad.tsv` | Vecindad repetida en los dos sentidos | 9.483 | Detectar duplicados |
+| Archivo             | Problema                                                  | Cantidad | Qué pide el enunciado     |
+| ------------------- | --------------------------------------------------------- | -------- | ------------------------- |
+| `casos_diarios.csv` | `deaths` vacío                                            | 28.470   | Campos incompletos        |
+| `casos_diarios.csv` | Sin código FIPS                                           | 10.803   | Validar identificadores   |
+| `casos_diarios.csv` | `county = Unknown`                                        | 9.708    | Validar identificadores   |
+| `condados.csv`      | Fila del país mezclada con los condados                   | 1        | Validar identificadores   |
+| `condados.csv`      | Filas de estados mezcladas con los condados               | 51       | Validar identificadores   |
+| `condados.csv`      | FIPS de 4 dígitos, sin el cero (`1001` en vez de `01001`) | 316      | Normalizar                |
+| `vecindad.tsv`      | Condado vecino de sí mismo                                | 3.234    | Relaciones inconsistentes |
+| `vecindad.tsv`      | Vecindad repetida en los dos sentidos                     | 9.483    | Detectar duplicados       |
 
 En `vecindad.tsv` las cuentas cuadran exactas: 3.234 bucles + 9.483 vecindades + 9.483 repetidas =
 22.200 filas. Además, los nombres no coinciden entre archivos (`Autauga County` y `AL` en
@@ -180,14 +180,14 @@ ejecutar aparece `ClassNotFoundException`, usar `Ctrl+Shift+P` → **Java: Force
 
 ## Reparto del equipo (6 integrantes)
 
-| Integrante | Rol | Clases a cargo | Rama |
-| --- | --- | --- | --- |
+| Integrante                        | Rol                         | Clases a cargo                                                                                                                                                                                                                                                 | Rama              |
+| --------------------------------- | --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- |
 | Cunalata Mendoza Damian Alexander | Líder técnico e integración | Este README, `tools/preparar_base.py`, carpeta `data/` (los 3 archivos de la base), `Busqueda` (búsqueda secuencial con conteo de comparaciones), `compilar.bat` / `compilar.sh`; integración de todas las ramas en `main` y prueba final con la base completa | `Damian_Cunalata` |
-| Chalco Tasna Kenneth Mateo | Desarrollo | `Nodo`, `ListaEnlazada` (insertar al final, insertar al inicio, obtener, eliminar, mostrar e iterador propio) y `ListaSecuencial` | `Mateo-Chalco` |
-| Tisalema Guashco Darwin Joel | Desarrollo | `Extract` (lectura de los 3 archivos: CSV y TSV con comillas, validación de cabecera, conteo de incidencias y de los posibles errores de la base) | `Rama-Joel` |
-| Silva Camuendo Luis Alexander | Desarrollo | Paquete `model/`: `Registro` (interfaz común), `Esquema`, `CasoDiario`, `Condado` y `Vecindad` | `Rama-Luis-Silva` |
-| Tacuri Santillan Mónica Sara | Desarrollo | `Main` (verificación de archivos, menú de consola y resumen de la carga) y `PruebaListaEnlazada` | `Sara-Tacuri` |
-| Camacho Monta Josue Jampier | Documentación | `Documentacion_SmartETL`, diagrama de clases, arquitectura propuesta y capturas de ejecución | `rama---Josue` |
+| Chalco Tasna Kenneth Mateo        | Desarrollo                  | `Nodo`, `ListaEnlazada` (insertar al final, insertar al inicio, obtener, eliminar, mostrar e iterador propio) y `ListaSecuencial`                                                                                                                              | `Mateo-Chalco`    |
+| Tisalema Guashco Darwin Joel      | Desarrollo                  | `Extract` (lectura de los 3 archivos: CSV y TSV con comillas, validación de cabecera, conteo de incidencias y de los posibles errores de la base)                                                                                                              | `Rama-Joel`       |
+| Silva Camuendo Luis Alexander     | Desarrollo                  | Paquete `model/`: `Registro` (interfaz común), `Esquema`, `CasoDiario`, `Condado` y `Vecindad`                                                                                                                                                                 | `Rama-Luis-Silva` |
+| Tacuri Santillan Mónica Sara      | Desarrollo                  | `Main` (verificación de archivos, menú de consola y resumen de la carga) y `PruebaListaEnlazada`                                                                                                                                                               | `Sara-Tacuri`     |
+| Camacho Monta Josue Jampier       | Documentación               | `Documentacion_SmartETL`, diagrama de clases, arquitectura propuesta y capturas de ejecución                                                                                                                                                                   | `rama---Josue`    |
 
 Cada integrante desarrolla sus clases en su propia rama y las integra a `main` mediante Pull Request
 revisado por otro compañero; el líder integra todo en `main` y valida la ejecución con la base
@@ -195,10 +195,10 @@ completa antes de la entrega.
 
 ## Breve explicación del uso de cada estructura de datos
 
-| Estructura | Dónde | Por qué |
-| --- | --- | --- |
-| **Lista simplemente enlazada con cabeza y cola** (`Nodo` con `siguiente`) | `ListaEnlazada` | No se sabe de antemano cuántos registros llegan; insertar al final es O(1) sin redimensionar nada. |
-| **Lista secuencial** (arreglo + `tamanio`) | `ListaSecuencial` | Solo para comparar: acceso por posición O(1), pero debe copiar todo el arreglo cada vez que se llena. |
+| Estructura                                                                | Dónde             | Por qué                                                                                               |
+| ------------------------------------------------------------------------- | ----------------- | ----------------------------------------------------------------------------------------------------- |
+| **Lista simplemente enlazada con cabeza y cola** (`Nodo` con `siguiente`) | `ListaEnlazada`   | No se sabe de antemano cuántos registros llegan; insertar al final es O(1) sin redimensionar nada.    |
+| **Lista secuencial** (arreglo + `tamanio`)                                | `ListaSecuencial` | Solo para comparar: acceso por posición O(1), pero debe copiar todo el arreglo cada vez que se llena. |
 
 ### Lista simplemente enlazada (`ListaEnlazada`)
 
@@ -249,21 +249,21 @@ Los casos se cargan **una sola vez** (opción 1) y todas las demás opciones reu
 
 Con la base completa, el programa debe mostrar aproximadamente:
 
-| Medida | Valor esperado |
-| --- | --- |
-| Filas leídas | 1.185.373 |
-| Registros cargados en la lista | 1.185.373 |
-| Filas descartadas por formato | 0 |
-| Fechas | 365 (2021-01-01 → 2021-12-31) |
-| Registros del último día | 3.251 |
-| Registros sin FIPS | 10.803 |
-| `county = Unknown` | 9.708 |
-| `deaths` vacío | 28.470 |
-| Filas de `condados.csv` / que no son condados / FIPS sin cero | 3.195 / 52 / 316 |
-| Filas de `vecindad.tsv` / bucles / repetidas | 22.200 / 3.234 / 9.483 |
-| Tiempo de carga | ≈1,5–2 s |
-| Memoria usada por el programa | ≈300–310 MB |
-| Búsqueda de FIPS `48201` en `2021-12-31` | 1.184.850 comparaciones |
+| Medida                                                        | Valor esperado                |
+| ------------------------------------------------------------- | ----------------------------- |
+| Filas leídas                                                  | 1.185.373                     |
+| Registros cargados en la lista                                | 1.185.373                     |
+| Filas descartadas por formato                                 | 0                             |
+| Fechas                                                        | 365 (2021-01-01 → 2021-12-31) |
+| Registros del último día                                      | 3.251                         |
+| Registros sin FIPS                                            | 10.803                        |
+| `county = Unknown`                                            | 9.708                         |
+| `deaths` vacío                                                | 28.470                        |
+| Filas de `condados.csv` / que no son condados / FIPS sin cero | 3.195 / 52 / 316              |
+| Filas de `vecindad.tsv` / bucles / repetidas                  | 22.200 / 3.234 / 9.483        |
+| Tiempo de carga                                               | ≈1,5–2 s                      |
+| Memoria usada por el programa                                 | ≈300–310 MB                   |
+| Búsqueda de FIPS `48201` en `2021-12-31`                      | 1.184.850 comparaciones       |
 
 Los posibles errores son los que muestra el **resumen de la carga**. Estos errores **vienen en los datos públicos originales**: no fueron agregados por el equipo. Su
 detalle está en `Documento/Documentacion_SmartETL.pdf`.
@@ -286,3 +286,22 @@ Sobre esta base, en las siguientes entregas el sistema incorporará:
 - **Grafo de vecindad con BFS y DFS** para responder a cuántos condados de distancia está uno de otro.
 - **IA (Gemini)** para generar automáticamente reportes y flujogramas a partir de lo que el programa
   ya calculó.
+
+## Verificar los generadores
+
+Desde la raíz del proyecto, ejecuta estos comandos en PowerShell:
+
+```powershell
+javac -encoding UTF-8 -d bin -sourcepath "src;test" test/PruebaGeneradorFlujograma.java test/PruebaGeneradorPrompt.java
+if ($LASTEXITCODE -eq 0) {
+    java -cp bin PruebaGeneradorFlujograma
+    java -cp bin PruebaGeneradorPrompt
+}
+```
+
+La primera prueba verifica el flujograma de la bitácora y el diagrama de un
+condado con dos vecinos. También genera
+[un flujograma de ejemplo](output/diagramas/ejemplo-bitacora.md).
+
+La segunda verifica que el prompt incluya las instrucciones de la plantilla,
+las cifras del resumen de ejemplo y los conteos de las transiciones.
